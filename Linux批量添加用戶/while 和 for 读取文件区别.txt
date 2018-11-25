@@ -1,0 +1,42 @@
+ 
+使用 while 循环读取文件效率最高。机制为按行读取文件.
+while read lines; do
+
+      echo $lines
+	  
+done < 文件
+
+-------------------------
+使用 for 读取时，任何空白字符都可以作为其读取的分隔符。
+
+脚本如下：
+#!/bin/bash
+
+FILE="/root/user.txt"
+
+for lines in `cat $FILE`; do
+    echo $lines
+done
+
+user.txt
+username01 password01
+username02 password02
+username03 password03
+username04 password04
+username05 password05
+username06 password06
+
+执行上述脚本后显示如下：
+username01
+password01
+username02
+password02
+username03
+password03
+username04
+password04
+username05
+password05
+username06
+password06
+--------------------------

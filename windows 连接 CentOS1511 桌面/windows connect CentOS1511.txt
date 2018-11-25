@@ -1,0 +1,94 @@
+
+OS：
+windows 7 --> vnc-viewer
+
+CentOS 1511  --> vnc-server
+
+1. windows7 下安装 vnc-viewer
+VNC-Viewer-6.17.1113-Windows.exe
+
+2. linux(首先是桌面版，否则再通过安装包安装) 下 vnc-server
+
+yum install tigervnc-server -y (ISO 安装包默认有)
+
+3. 编辑文件
+
+[root@localhost ~]# mv /lib/systemd/system/vncserver@.service /lib/systemd/system/vncserver@:1.service 
+
+将其中：
+
+ExecStart=/usr/sbin/runuser -l <USER> -c "/usr/bin/vncserver %i"
+PIDFile=/home/<USER>/.vnc/%H%i.pid
+
+改为：
+
+ExecStart=/usr/sbin/runuser -l root -c "/usr/bin/vncserver %i"
+PIDFile=/root/.vnc/%H%i.pid
+
+因为为 root 用户，依据用户名设定，可以配置多个 vnc server，将 vncserver@:1.service  再复制为 vncserver@2:.servece, vncserver@3:.servece...
+
+然后配置设置不同用户和对应的家目录。
+
+4. 建立软连接
+
+[root@localhost ~]# ln -s /lib/systemd/system/vncserver@:1.service /etc/systemd/system/vncserver@:1.service
+
+
+6. 设置 vnc 登录密码
+
+[root@localhost ~]# vncpasswd
+
+
+7. 启动 vncserver
+
+[root@localhost ~]# systemctl restart vncserver@:1.service
+Job for vncserver@:1.service failed because the control process exited with error code. See "systemctl status vncserver@:1.service" and "journalctl -xe" for details.
+
+[root@localhost ~]# systemctl status vncserver@:1.service
+● vncserver@:1.service - Remote desktop service (VNC)
+   Loaded: loaded (/usr/lib/systemd/system/vncserver@:1.service; enabled; vendor preset: disabled)
+   Active: failed (Result: exit-code) since Fri 2018-06-01 17:27:14 CST; 3s ago
+  Process: 12327 ExecStart=/usr/sbin/runuser -l root -c /usr/bin/vncserver %i (code=exited, status=98)
+  Process: 12316 ExecStartPre=/bin/sh -c /usr/bin/vncserver -kill %i > /dev/null 2>&1 || : (code=exited, status=0/SUCCESS)
+
+Jun 01 17:27:14 localhost.localdomain systemd[1]: Starting Remote desktop service (VNC)...
+Jun 01 17:27:14 localhost.localdomain systemd[1]: vncserver@:1.service: control process exited, code=exited status=98
+Jun 01 17:27:14 localhost.localdomain systemd[1]: Failed to start Remote desktop service (VNC).
+Jun 01 17:27:14 localhost.localdomain systemd[1]: Unit vncserver@:1.service entered failed state.
+Jun 01 17:27:14 localhost.localdomain systemd[1]: vncserver@:1.service failed.
+
+8. 上述未能成功启动，是因为需要 kill 掉 Xvnc  进程
+
+[root@localhost ~]# ps aux | grep vnc
+root      7602  0.0  0.3 247720 29500 ?        Sl   17:13   0:00 /usr/bin/Xvnc :1 -desktop localhost.localdomain:1 (root) -auth /root/.Xauthority -geometry 1024x768 -rfbwait 30000 -rfbauth /root/.vnc/passwd -rfbport 5901 -fp catalogue:/etc/X11/fontpath.d -pn
+root      7740  0.0  0.0  96780  4096 ?        S    17:13   0:00 /usr/bin/vncconfig -iconic
+root     12698  0.0  0.0 112648   952 pts/1    S+   17:33   0:00 grep --color=auto vnc
+
+note：port 5901
+
+9. 重新启动
+
+[root@localhost ~]# systemctl restart vncserver@:1.service
+
+[root@localhost ~]# systemctl status vncserver@:1.service
+● vncserver@:1.service - Remote desktop service (VNC)
+   Loaded: loaded (/usr/lib/systemd/system/vncserver@:1.service; enabled; vendor preset: disabled)
+   Active: active (running) since Fri 2018-06-01 17:34:31 CST; 6s ago
+  Process: 12884 ExecStart=/usr/sbin/runuser -l root -c /usr/bin/vncserver %i (code=exited, status=0/SUCCESS)
+  Process: 12876 ExecStartPre=/bin/sh -c /usr/bin/vncserver -kill %i > /dev/null 2>&1 || : (code=exited, status=0/SUCCESS)
+ Main PID: 12920 (Xvnc)
+   CGroup: /system.slice/system-vncserver.slice/vncserver@:1.service
+           ‣ 12920 /usr/bin/Xvnc :1 -desktop localhost.localdomain:1 (root) -auth /root/.Xauthority -geometry 1024x768 -rfbwait 30000 -rfbauth /root/.vnc/passwd -rfbport 5901 -...
+
+Jun 01 17:34:28 localhost.localdomain systemd[1]: Starting Remote desktop service (VNC)...
+Jun 01 17:34:31 localhost.localdomain systemd[1]: Started Remote desktop service (VNC).
+
+10. windows 登录 vnc-viewer
+
+登录信息：10.191.174.13:5901/foxconn (5901 为vnc 的启动序号)，如果不加该序号，则显示
+
+ the connection was refused by the computer
+
+
+
+

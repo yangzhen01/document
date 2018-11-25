@@ -1,0 +1,27 @@
+
+expect1.2> expect {
++> "hi" {send "hi\n"}
++> "Hw' {send 'Hw\n"}
++> }
+hi
+hi
+expect1.3>
+
+等同于
+
+expect1.3> expect "hi" {send "hi\n"}\
++> "Hw" {send "Hw\n"}
+hi
+hi
+expect1.4> 
+-------------------------------------------------------------
+
+expect 常用命令：
+
+spawn: spawn 用来启动新的进程(由 spawn 启动的进程输出才可以被 expect 捕获)
+
+expect：从进程接收字符串，通常等待进程的反馈。
+
+send：expect 接收的与期望字符匹配，则执行 send 后的操作。
+
+interact：执行完成后保持交互状态，可以手动输入信息。

@@ -1,0 +1,28 @@
+
+OS 环境：CentOS 7 1511
+
+1.下载apache-tomcat-7.0.79.tar.gz
+
+2. 解压至目录
+[root@docker1 cdrom]#tar -zxf apache-tomcat-7.0.79.tar.gz -C /usr/local/src/
+
+3. 编辑 server.conf 修改默认端口号(默认为8080)
+[root@docker1 conf]#pwd
+/usr/local/src/apache-tomcat-7.0.79/conf
+[root@docker1 conf]#vim server.xml 
+
+4. 在 /usr/local/src/apache-tomcat-7.0.79/bin 目录下启动 tomcat
+[root@docker1 bin]#./startup.sh start
+Using CATALINA_BASE:   /usr/local/src/apache-tomcat-7.0.79
+Using CATALINA_HOME:   /usr/local/src/apache-tomcat-7.0.79
+Using CATALINA_TMPDIR: /usr/local/src/apache-tomcat-7.0.79/temp
+Using JRE_HOME:        /usr
+Using CLASSPATH:       /usr/local/src/apache-tomcat-7.0.79/bin/bootstrap.jar:/usr/local/src/apache-tomcat-7.0.79/bin/tomcat-juli.jar
+Tomcat started.
+
+5.查看 tomcat 进程
+[root@docker1 bin]#ps -ef | grep tomcat
+root     16605     1  1 12:24 pts/0    00:00:06 /usr/bin/java -Djava.util.logging.config.file=/usr/local/src/apache-tomcat-7.0.79/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djdk.tls.ephemeralDHKeySize=2048 -Djava.endorsed.dirs=/usr/local/src/apache-tomcat-7.0.79/endorsed -classpath /usr/local/src/apache-tomcat-7.0.79/bin/bootstrap.jar:/usr/local/src/apache-tomcat-7.0.79/bin/tomcat-juli.jar -Dcatalina.base=/usr/local/src/apache-tomcat-7.0.79 -Dcatalina.home=/usr/local/src/apache-tomcat-7.0.79 -Djava.io.tmpdir=/usr/local/src/apache-tomcat-7.0.79/temp org.apache.catalina.startup.Bootstrap start start
+root     16717 16365  0 12:32 pts/0    00:00:00 grep --color=auto tomcat
+
+

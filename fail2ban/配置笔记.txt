@@ -1,0 +1,45 @@
+---------------------------------------------------------
+说明：本文档启动 sshd 配置
+---------------------------------------------------------
+
+OS环境:
+  CentOS 7 1511
+  
+1. 编辑配置文件 /etc/fail2ban/jail.conf
+
+   可修改其中字段：
+   
+   bantime：IP禁止多长时间失效。
+   
+   findtime：在指定时间内，登录 maxretry 次数后如不成功，则该 IP 被限制。
+   
+   maxretry：
+   
+   添加 [ssh-iptables] 段，其中与 [DEFALUTE] 相同的字段，则该段的字段值优先级高于 [DEFALUTE] 段中的字段。
+   
+2. 启动服务
+
+   systemctl start fail2ban &&　systemctl enable fail2ban
+   
+3. 验证。
+
+   执行 fail2ban-client ping，回显如下字符，则启动成功。
+   Server replied: pong
+
+ 
+----------------------------------------------------------
+
+在 server 上执行：
+
+iptables -L --line-numbers
+
+其上命令输出可以找到显示被禁的主机 IP 地址。
+
+
+删除被禁的规则：
+
+iptables -D 链名 seq_num
+
+此后便可以从该主机登录 server，但超过预设次数后也不会禁掉该主机IP。通过其他方式登录 server，重启systemctl restart fail2ban，
+
+则又重新禁掉该主机 IP。

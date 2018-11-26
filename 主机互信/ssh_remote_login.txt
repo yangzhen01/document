@@ -1,0 +1,23 @@
+#!/usr/bin/expect
+
+set time -1
+spawn ssh host2
+expect {
+         "*yes/no*" {send "yes\n";exp_continue}
+         "*password:" {send "foxconn\n";exp_continue}
+    }
+
+interact
+
+新建 trust.sh 文件：
+#!/usr/bin/expect -f
+set ip [lindex $argv 0 ] #命令行中第一个参数
+set password [lindex $argv 1 ] #命令行中第二个参数
+spawn ssh $ip
+expect {
+  "*yes/no" {send "yes\n";exp_continue}
+  "*password:" {send "$password\n"}
+}
+interact
+
+执行：expect trust.sh 10.67.46.222 foxconn

@@ -1,0 +1,118 @@
+
+tcpdump 常用参数说明：
+
+-e: 输出行打印出数据链路层的头部信息，包括源mac和目的mac，以及网络层的协议；
+
+-l: 使标准输出变为缓冲行形式；
+
+-nn: 指定将每个监听到的数据包中的域名转换成IP；
+
+-c: 在收到指定的包的数目后，tcpdump就会停止；
+
+-i: 指定监听的网络接口；
+
+-w: 直接将包写入文件中，并不分析和打印出来；
+
+-s snaplen: snaplen表示从一个包中截取的字节数。0表示包不截断，抓完整的数据包。默认的话 tcpdump 只显示部分数据包,默认68字节;
+
+-X: 告诉tcpdump命令，需要把协议头和包内容都原原本本的显示出来.
+
+
+ex: 
+
+以下操作可通过浏览器刷新页面，即可以观察数据包的发送接收情况，也可以通过 telnet 获取。
+
+1. 提取数据包每一行时间戳，需要使用 -l 参数将默认的全缓冲变为行缓冲
+
+[root@fixo-control-1 ~]# tcpdump -i bond1.997 port 80  -c 10 | awk '{print $1}'
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on bond1.997, link-type EN10MB (Ethernet), capture size 65535 bytes
+14:52:30.027691
+14:52:30.027722
+14:52:30.045135
+14:52:30.049191
+14:52:30.049215
+14:52:30.113133
+14:52:30.113163
+14:52:30.113190
+14:52:30.113210
+14:52:30.138914
+10 packets captured
+19 packets received by filter
+0 packets dropped by kernel
+
+2. 
+
+2.1 将数据包写入文件中
+
+[root@fixo-control-1 ~]# tcpdump -i bond1.997 port 80 -v -nn -c 10 -s 0 -w ex.pcap
+[root@fixo-control-1 ~]# tcpdump -i bond1.997 port 80 -v -nn -c 10 -s 0 -w ex.pcap
+tcpdump: listening on bond1.997, link-type EN10MB (Ethernet), capture size 65535 bytes
+10 packets captured
+16 packets received by filter
+0 packets dropped by kernel
+You have new mail in /var/spool/mail/root
+[root@fixo-control-1 ~]# ll -h ex.pcap 
+-rw-r--r-- 1 tcpdump tcpdump 9.3K Apr 27 14:59 ex.pcap
+
+2.2 读数据包分析
+
+[root@fixo-control-1 ~]# tcpdump -i bond1.997 port 80 -v -nn -c 10 -s 0 -r ex.pcap
+reading from file ex.pcap, link-type EN10MB (Ethernet)
+14:59:22.260288 IP (tos 0x0, ttl 59, id 37416, offset 0, flags [DF], proto TCP (6), length 60)
+    10.191.131.12.2187 > 10.134.208.3.80: Flags [S], cksum 0x3d9b (correct), seq 4214816628, win 14600, options [mss 1380,sackOK,TS val 2590231402 ecr 0,nop,wscale 8], length 0
+14:59:22.260344 IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    10.134.208.3.80 > 10.191.131.12.2187: Flags [S.], cksum 0x6883 (incorrect -> 0xe50a), seq 2462700275, ack 4214816629, win 28960, options [mss 1460,sackOK,TS val 4232953356 ecr 2590231402,nop,wscale 7], length 0
+14:59:22.283456 IP (tos 0x0, ttl 59, id 37417, offset 0, flags [DF], proto TCP (6), length 52)
+    10.191.131.12.2187 > 10.134.208.3.80: Flags [.], cksum 0x84a5 (correct), ack 1, win 58, options [nop,nop,TS val 2590231426 ecr 4232953356], length 0
+14:59:22.289691 IP (tos 0x0, ttl 59, id 37418, offset 0, flags [DF], proto TCP (6), length 727)
+    10.191.131.12.2187 > 10.134.208.3.80: Flags [P.], cksum 0xf4d6 (correct), seq 1:676, ack 1, win 58, options [nop,nop,TS val 2590231431 ecr 4232953356], length 675
+14:59:22.289726 IP (tos 0x0, ttl 64, id 27869, offset 0, flags [DF], proto TCP (6), length 52)
+    10.134.208.3.80 > 10.191.131.12.2187: Flags [.], cksum 0x687b (incorrect -> 0x812d), ack 676, win 237, options [nop,nop,TS val 4232953385 ecr 2590231431], length 0
+14:59:22.357015 IP (tos 0x0, ttl 64, id 27870, offset 0, flags [DF], proto TCP (6), length 2788)
+    10.134.208.3.80 > 10.191.131.12.2187: Flags [.], cksum 0x732b (incorrect -> 0x72d7), seq 1:2737, ack 676, win 237, options [nop,nop,TS val 4232953452 ecr 2590231431], length 2736
+14:59:22.357045 IP (tos 0x0, ttl 64, id 27872, offset 0, flags [DF], proto TCP (6), length 2788)
+    10.134.208.3.80 > 10.191.131.12.2187: Flags [.], cksum 0x732b (incorrect -> 0x178c), seq 2737:5473, ack 676, win 237, options [nop,nop,TS val 4232953453 ecr 2590231431], length 2736
+14:59:22.357052 IP (tos 0x0, ttl 64, id 27874, offset 0, flags [DF], proto TCP (6), length 2469)
+    10.134.208.3.80 > 10.191.131.12.2187: Flags [P.], cksum 0x71ec (incorrect -> 0x145d), seq 5473:7890, ack 676, win 237, options [nop,nop,TS val 4232953453 ecr 2590231431], length 2417
+14:59:22.357096 IP (tos 0x0, ttl 64, id 27876, offset 0, flags [DF], proto TCP (6), length 57)
+    10.134.208.3.80 > 10.191.131.12.2187: Flags [P.], cksum 0x6880 (incorrect -> 0x1df1), seq 7890:7895, ack 676, win 237, options [nop,nop,TS val 4232953453 ecr 2590231431], length 5
+14:59:22.386259 IP (tos 0x0, ttl 59, id 37419, offset 0, flags [DF], proto TCP (6), length 52)
+    10.191.131.12.2187 > 10.134.208.3.80: Flags [.], cksum 0x7bdf (correct), ack 1369, win 68, options [nop,nop,TS val 2590231523 ecr 4232953452], length 0
+You have new mail in /var/spool/mail/root
+
+如果要看绝对确认序号加上参数 -S。
+
+2.3 命令行中添加参数 -S
+
+[root@fixo-control-1 ~]# tcpdump -i bond1.997 port 80 -v -nn -c 10 -S
+tcpdump: listening on bond1.997, link-type EN10MB (Ethernet), capture size 65535 bytes
+16:00:20.134303 IP (tos 0x0, ttl 59, id 34572, offset 0, flags [DF], proto TCP (6), length 60)
+    10.191.131.12.34138 > 10.134.208.3.80: Flags [S], cksum 0xa863 (correct), seq 1323561786, win 14600, options [mss 1380,sackOK,TS val 2593889322 ecr 0,nop,wscale 8], length 0
+16:00:20.134329 IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    10.134.208.3.80 > 10.191.131.12.34138: Flags [S.], cksum 0x6883 (incorrect -> 0xb589), seq 2121380043, ack 1323561787, win 28960, options [mss 1460,sackOK,TS val 4236611230 ecr 2593889322,nop,wscale 7], length 0
+16:00:20.138608 IP (tos 0x0, ttl 59, id 34573, offset 0, flags [DF], proto TCP (6), length 52)
+    10.191.131.12.34138 > 10.134.208.3.80: Flags [.], cksum 0x5536 (correct), ack 2121380044, win 58, options [nop,nop,TS val 2593889328 ecr 4236611230], length 0
+16:00:20.145843 IP (tos 0x0, ttl 59, id 34574, offset 0, flags [DF], proto TCP (6), length 727)
+    10.191.131.12.34138 > 10.134.208.3.80: Flags [P.], cksum 0xc564 (correct), seq 1323561787:1323562462, ack 2121380044, win 58, options [nop,nop,TS val 2593889336 ecr 4236611230], length 675
+16:00:20.145872 IP (tos 0x0, ttl 64, id 15973, offset 0, flags [DF], proto TCP (6), length 52)
+    10.134.208.3.80 > 10.191.131.12.34138: Flags [.], cksum 0x687b (incorrect -> 0x51cd), ack 1323562462, win 237, options [nop,nop,TS val 4236611241 ecr 2593889336], length 0
+16:00:20.193474 IP (tos 0x0, ttl 64, id 15974, offset 0, flags [DF], proto TCP (6), length 2788)
+    10.134.208.3.80 > 10.191.131.12.34138: Flags [.], cksum 0x732b (incorrect -> 0x5fa6), seq 2121380044:2121382780, ack 1323562462, win 237, options [nop,nop,TS val 4236611289 ecr 2593889336], length 2736
+16:00:20.193491 IP (tos 0x0, ttl 64, id 15976, offset 0, flags [DF], proto TCP (6), length 2788)
+    10.134.208.3.80 > 10.191.131.12.34138: Flags [.], cksum 0x732b (incorrect -> 0xe83f), seq 2121382780:2121385516, ack 1323562462, win 237, options [nop,nop,TS val 4236611289 ecr 2593889336], length 2736
+16:00:20.193527 IP (tos 0x0, ttl 64, id 15978, offset 0, flags [DF], proto TCP (6), length 2474)
+    10.134.208.3.80 > 10.191.131.12.34138: Flags [P.], cksum 0x71f1 (incorrect -> 0xcac7), seq 2121385516:2121387938, ack 1323562462, win 237, options [nop,nop,TS val 4236611289 ecr 2593889336], length 2422
+16:00:20.194530 IP (tos 0x0, ttl 59, id 34575, offset 0, flags [DF], proto TCP (6), length 52)
+    10.191.131.12.34138 > 10.134.208.3.80: Flags [.], cksum 0x4cbc (correct), ack 2121381412, win 68, options [nop,nop,TS val 2593889386 ecr 4236611289], length 0
+16:00:20.194543 IP (tos 0x0, ttl 59, id 34576, offset 0, flags [DF], proto TCP (6), length 52)
+    10.191.131.12.34138 > 10.134.208.3.80: Flags [.], cksum 0x4759 (correct), ack 2121382780, win 79, options [nop,nop,TS val 2593889386 ecr 4236611289], length 0
+10 packets captured
+15 packets received by filter
+0 packets dropped by kernel
+You have new mail in /var/spool/mail/root
+
+
+
+
+

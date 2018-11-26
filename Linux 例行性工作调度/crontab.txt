@@ -1,0 +1,27 @@
+
+Linux 命令行输入 crontab -e，进入 vim 编辑界面，每行代表一项工作。
+
+格式：
+分 时 日 月 周  Linux 命令
+-------------------------------------------------------------------------
+
+5月1日晚上23点59分
+59 23 1 5 * mail someone < /home/work.txt
+
+每隔5小时执行
+* /5  *  *  * /home/test.sh
+
+每周5下午点3分
+30 16 * * /5 mail someone < /home/friend.txt
+
+每隔2小时
+0 */2 * * *　/bin/bash mariadb_bakup.sql
+
+查看例行性任务：
+crontab -l
+
+全部删除任务：
+crontab -r
+
+删除某一项任务：
+使用 crontab -e 编辑

@@ -1,0 +1,973 @@
+
+前言：
+---------------------------------------------
+----------
+rpm 与 yum 都是 CentOS 下包管理器。
+
+rpm 可以单独安装 rpm 格式的软件包，但是需要手动安装依赖关系；而 yum 则可以自动安装依赖。
+----------
+----------------------------------------------
+
+问题描述：
+
+在使用 yum 源安装文件过程中，会把当前低版本的软件包自动升级成高版本的软件包，因此就会出现这些高版本的软件包(更新过的软件包)与先前的软件包不兼容的情况，
+
+因此我们就需要把更新过的包版本再降回去，手动降版本很繁琐也很危险，而 yum 则提供一步到位的方式，即回滚操作。
+
+Note:安装之前应该认真比对 yum 源
+
+环境:
+New dmz 环境下在安装 trove 过程中。
+
+
+yum 回滚操作：
+
+1. 安装 trove 组件
+
+[root@control-2 ~]# yum -y install openstack-trove openstack-trove-api python-troveclient
+Loaded plugins: fastestmirror, langpacks
+Loading mirror speeds from cached hostfile
+Package python-troveclient is obsoleted by python2-troveclient, trying to install python2-troveclient-2.5.0-1.el7.noarch instead
+Resolving Dependencies
+--> Running transaction check
+---> Package openstack-trove.noarch 1:6.0.0-1.el7 will be installed
+--> Processing Dependency: openstack-trove-taskmanager = 1:6.0.0-1.el7 for package: 1:openstack-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: openstack-trove-conductor = 1:6.0.0-1.el7 for package: 1:openstack-trove-6.0.0-1.el7.noarch
+---> Package openstack-trove-api.noarch 1:6.0.0-1.el7 will be installed
+--> Processing Dependency: openstack-trove-common = 1:6.0.0-1.el7 for package: 1:openstack-trove-api-6.0.0-1.el7.noarch
+---> Package python-troveclient.noarch 0:1.3.0-1.el7 will be obsoleted
+---> Package python2-troveclient.noarch 0:2.5.0-1.el7 will be obsoleting
+--> Processing Dependency: python-mistralclient for package: python2-troveclient-2.5.0-1.el7.noarch
+--> Processing Dependency: python-keystoneauth1 for package: python2-troveclient-2.5.0-1.el7.noarch
+--> Running transaction check
+---> Package openstack-trove-common.noarch 1:6.0.0-1.el7 will be installed
+--> Processing Dependency: python-trove = 1:6.0.0-1.el7 for package: 1:openstack-trove-common-6.0.0-1.el7.noarch
+---> Package openstack-trove-conductor.noarch 1:6.0.0-1.el7 will be installed
+---> Package openstack-trove-taskmanager.noarch 1:6.0.0-1.el7 will be installed
+---> Package python-mistralclient.noarch 0:2.1.2-1.el7 will be installed
+---> Package python2-keystoneauth1.noarch 0:2.12.2-1.el7 will be installed
+--> Processing Dependency: python-stevedore >= 1.16.0 for package: python2-keystoneauth1-2.12.2-1.el7.noarch
+--> Processing Dependency: python-positional >= 1.0.1 for package: python2-keystoneauth1-2.12.2-1.el7.noarch
+--> Running transaction check
+---> Package python-stevedore.noarch 0:1.8.0-1.el7 will be obsoleted
+---> Package python-trove.noarch 1:6.0.0-1.el7 will be installed
+--> Processing Dependency: python-xmltodict >= 0.10.1 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-swiftclient >= 3.0.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-osprofiler >= 1.2.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-utils >= 3.7.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-service >= 1.7.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-serialization >= 2.4.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-middleware >= 3.7.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-messaging >= 4.5.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-log >= 3.2.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-i18n >= 3.4.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-db >= 4.6.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-config >= 2:3.9.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-oslo-concurrency >= 3.6.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-neutronclient >= 4.1.1 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-keystonemiddleware >= 4.3.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-keystoneclient >= 1:2.3.1 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-heatclient >= 1.0.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-designateclient >= 2.0.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+--> Processing Dependency: python-cinderclient >= 1.6.0 for package: 1:python-trove-6.0.0-1.el7.noarch
+---> Package python2-positional.noarch 0:1.1.1-2.el7 will be installed
+---> Package python2-stevedore.noarch 0:1.17.1-1.el7 will be obsoleting
+--> Running transaction check
+---> Package python-cinderclient.noarch 0:1.4.0-1.el7 will be obsoleted
+---> Package python-heatclient.noarch 0:0.8.0-1.el7 will be obsoleted
+---> Package python-keystoneclient.noarch 1:1.7.2-1.el7 will be obsoleted
+---> Package python-keystonemiddleware.noarch 0:2.3.1-1.el7 will be obsoleted
+---> Package python-neutronclient.noarch 0:3.1.0-1.el7 will be obsoleted
+---> Package python-oslo-concurrency.noarch 0:2.6.1-3.el7 will be obsoleted
+---> Package python-oslo-db.noarch 0:2.6.0-3.el7 will be obsoleted
+---> Package python-oslo-log.noarch 0:1.10.0-1.el7 will be obsoleted
+---> Package python-oslo-messaging.noarch 0:2.5.0-1.el7 will be obsoleted
+---> Package python-oslo-middleware.noarch 0:2.8.0-1.el7 will be obsoleted
+---> Package python-oslo-service.noarch 0:0.9.0-1.el7 will be obsoleted
+---> Package python-osprofiler.noarch 0:0.3.0-1.el7 will be updated
+---> Package python-osprofiler.noarch 0:1.4.0-1.el7 will be an update
+---> Package python-swiftclient.noarch 0:2.6.0-1.el7 will be obsoleted
+---> Package python2-cinderclient.noarch 0:1.9.0-1.el7 will be obsoleting
+---> Package python2-designateclient.noarch 0:2.3.0-1.el7 will be installed
+--> Processing Dependency: python-osc-lib for package: python2-designateclient-2.3.0-1.el7.noarch
+---> Package python2-heatclient.noarch 0:1.5.0-1.el7 will be obsoleting
+---> Package python2-keystoneclient.noarch 1:3.5.0-1.el7 will be obsoleting
+--> Processing Dependency: python-debtcollector >= 1.2.0 for package: 1:python2-keystoneclient-3.5.0-1.el7.noarch
+---> Package python2-keystonemiddleware.noarch 0:4.9.0-1.el7 will be obsoleting
+--> Processing Dependency: python-oslo-context >= 2.9.0 for package: python2-keystonemiddleware-4.9.0-1.el7.noarch
+---> Package python2-neutronclient.noarch 0:6.0.0-2.el7 will be obsoleting
+--> Processing Dependency: python-os-client-config >= 1.13.1 for package: python2-neutronclient-6.0.0-2.el7.noarch
+---> Package python2-oslo-concurrency.noarch 0:3.14.0-1.el7 will be obsoleting
+--> Processing Dependency: python-oslo-concurrency-lang = 3.14.0-1.el7 for package: python2-oslo-concurrency-3.14.0-1.el7.noarch
+---> Package python2-oslo-config.noarch 2:2.4.0-1.el7 will be updated
+---> Package python2-oslo-config.noarch 2:3.17.1-1.el7 will be an update
+---> Package python2-oslo-db.noarch 0:4.13.5-1.el7 will be obsoleting
+--> Processing Dependency: python-oslo-db-lang = 4.13.5-1.el7 for package: python2-oslo-db-4.13.5-1.el7.noarch
+---> Package python2-oslo-i18n.noarch 0:2.6.0-1.el7 will be updated
+---> Package python2-oslo-i18n.noarch 0:3.9.0-1.el7 will be an update
+---> Package python2-oslo-log.noarch 0:3.16.0-1.el7 will be obsoleting
+--> Processing Dependency: python-oslo-log-lang = 3.16.0-1.el7 for package: python2-oslo-log-3.16.0-1.el7.noarch
+--> Processing Dependency: python-inotify for package: python2-oslo-log-3.16.0-1.el7.noarch
+---> Package python2-oslo-messaging.noarch 0:5.10.1-1.el7 will be obsoleting
+--> Processing Dependency: python-pika_pool for package: python2-oslo-messaging-5.10.1-1.el7.noarch
+---> Package python2-oslo-middleware.noarch 0:3.19.0-1.el7 will be obsoleting
+--> Processing Dependency: python-oslo-middleware-lang = 3.19.0-1.el7 for package: python2-oslo-middleware-3.19.0-1.el7.noarch
+---> Package python2-oslo-serialization.noarch 0:1.9.0-1.el7 will be updated
+---> Package python2-oslo-serialization.noarch 0:2.13.0-1.el7 will be an update
+---> Package python2-oslo-service.noarch 0:1.16.0-1.el7 will be obsoleting
+---> Package python2-oslo-utils.noarch 0:2.5.0-1.el7 will be updated
+---> Package python2-oslo-utils.noarch 0:3.16.0-1.el7 will be an update
+--> Processing Dependency: python-oslo-utils-lang = 3.16.0-1.el7 for package: python2-oslo-utils-3.16.0-1.el7.noarch
+---> Package python2-swiftclient.noarch 0:3.1.0-1.el7 will be obsoleting
+---> Package python2-xmltodict.noarch 0:0.10.1-1.el7 will be installed
+--> Running transaction check
+---> Package python-inotify.noarch 0:0.9.4-4.el7 will be installed
+---> Package python-oslo-concurrency-lang.noarch 0:3.14.0-1.el7 will be installed
+---> Package python-oslo-db-lang.noarch 0:4.13.5-1.el7 will be installed
+---> Package python-oslo-log-lang.noarch 0:3.16.0-1.el7 will be installed
+---> Package python-oslo-middleware-lang.noarch 0:3.19.0-1.el7 will be installed
+---> Package python-oslo-utils-lang.noarch 0:3.16.0-1.el7 will be installed
+---> Package python2-debtcollector.noarch 0:0.8.0-1.el7 will be updated
+---> Package python2-debtcollector.noarch 0:1.8.0-1.el7 will be an update
+---> Package python2-os-client-config.noarch 0:1.7.4-1.el7 will be updated
+---> Package python2-os-client-config.noarch 0:1.21.1-1.el7 will be an update
+--> Processing Dependency: python-requestsexceptions >= 1.1.1 for package: python2-os-client-config-1.21.1-1.el7.noarch
+---> Package python2-osc-lib.noarch 0:1.1.0-3.el7 will be installed
+---> Package python2-oslo-context.noarch 0:0.6.0-1.el7 will be updated
+---> Package python2-oslo-context.noarch 0:2.9.0-1.el7 will be an update
+---> Package python2-pika_pool.noarch 0:0.1.3-3.el7 will be installed
+--> Processing Dependency: python-pika >= 0.9 for package: python2-pika_pool-0.1.3-3.el7.noarch
+--> Running transaction check
+---> Package python2-pika.noarch 0:0.10.0-3.el7 will be installed
+---> Package python2-requestsexceptions.noarch 0:1.1.3-1.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+===========================================================================================================================================
+ Package                                         Arch                      Version                            Repository              Size
+===========================================================================================================================================
+Installing:
+ openstack-trove                                 noarch                    1:6.0.0-1.el7                      iso                    6.9 k
+ openstack-trove-api                             noarch                    1:6.0.0-1.el7                      iso                    4.4 k
+ python2-cinderclient                            noarch                    1.9.0-1.el7                        iso                    224 k
+     replacing  python-cinderclient.noarch 1.4.0-1.el7
+ python2-heatclient                              noarch                    1.5.0-1.el7                        iso                    183 k
+     replacing  python-heatclient.noarch 0.8.0-1.el7
+ python2-keystoneclient                          noarch                    1:3.5.0-1.el7                      iso                    234 k
+     replacing  python-keystoneclient.noarch 1:1.7.2-1.el7
+ python2-keystonemiddleware                      noarch                    4.9.0-1.el7                        iso                     92 k
+     replacing  python-keystonemiddleware.noarch 2.3.1-1.el7
+ python2-neutronclient                           noarch                    6.0.0-2.el7                        iso                    220 k
+     replacing  python-neutronclient.noarch 3.1.0-1.el7
+ python2-oslo-concurrency                        noarch                    3.14.0-1.el7                       iso                     35 k
+     replacing  python-oslo-concurrency.noarch 2.6.1-3.el7
+ python2-oslo-db                                 noarch                    4.13.5-1.el7                       iso                    131 k
+     replacing  python-oslo-db.noarch 2.6.0-3.el7
+ python2-oslo-log                                noarch                    3.16.0-1.el7                       iso                     51 k
+     replacing  python-oslo-log.noarch 1.10.0-1.el7
+ python2-oslo-messaging                          noarch                    5.10.1-1.el7                       iso                    317 k
+     replacing  python-oslo-messaging.noarch 2.5.0-1.el7
+ python2-oslo-middleware                         noarch                    3.19.0-1.el7                       iso                     43 k
+     replacing  python-oslo-middleware.noarch 2.8.0-1.el7
+ python2-oslo-service                            noarch                    1.16.0-1.el7                       iso                     59 k
+     replacing  python-oslo-service.noarch 0.9.0-1.el7
+ python2-stevedore                               noarch                    1.17.1-1.el7                       iso                     55 k
+     replacing  python-stevedore.noarch 1.8.0-1.el7
+ python2-swiftclient                             noarch                    3.1.0-1.el7                        iso                    115 k
+     replacing  python-swiftclient.noarch 2.6.0-1.el7
+ python2-troveclient                             noarch                    2.5.0-1.el7                        iso                    374 k
+     replacing  python-troveclient.noarch 1.3.0-1.el7
+Installing for dependencies:
+ openstack-trove-common                          noarch                    1:6.0.0-1.el7                      iso                     13 k
+ openstack-trove-conductor                       noarch                    1:6.0.0-1.el7                      iso                    5.5 k
+ openstack-trove-taskmanager                     noarch                    1:6.0.0-1.el7                      iso                    8.1 k
+ python-inotify                                  noarch                    0.9.4-4.el7                        iso                     49 k
+ python-mistralclient                            noarch                    2.1.2-1.el7                        iso                    122 k
+ python-oslo-concurrency-lang                    noarch                    3.14.0-1.el7                       iso                    5.4 k
+ python-oslo-db-lang                             noarch                    4.13.5-1.el7                       iso                    9.0 k
+ python-oslo-log-lang                            noarch                    3.16.0-1.el7                       iso                    4.9 k
+ python-oslo-middleware-lang                     noarch                    3.19.0-1.el7                       iso                    3.8 k
+ python-oslo-utils-lang                          noarch                    3.16.0-1.el7                       iso                    4.7 k
+ python-trove                                    noarch                    1:6.0.0-1.el7                      iso                    1.0 M
+ python2-designateclient                         noarch                    2.3.0-1.el7                        iso                    111 k
+ python2-keystoneauth1                           noarch                    2.12.2-1.el7                       iso                    311 k
+ python2-osc-lib                                 noarch                    1.1.0-3.el7                        iso                     59 k
+ python2-pika                                    noarch                    0.10.0-3.el7                       iso                    195 k
+ python2-pika_pool                               noarch                    0.1.3-3.el7                        iso                     12 k
+ python2-positional                              noarch                    1.1.1-2.el7                        iso                     16 k
+ python2-requestsexceptions                      noarch                    1.1.3-1.el7                        iso                     11 k
+ python2-xmltodict                               noarch                    0.10.1-1.el7                       iso                     17 k
+Updating for dependencies:
+ python-osprofiler                               noarch                    1.4.0-1.el7                        iso                     92 k
+ python2-debtcollector                           noarch                    1.8.0-1.el7                        iso                     27 k
+ python2-os-client-config                        noarch                    1.21.1-1.el7                       iso                     80 k
+ python2-oslo-config                             noarch                    2:3.17.1-1.el7                     iso                    178 k
+ python2-oslo-context                            noarch                    2.9.0-1.el7                        iso                     17 k
+ python2-oslo-i18n                               noarch                    3.9.0-1.el7                        iso                     57 k
+ python2-oslo-serialization                      noarch                    2.13.0-1.el7                       iso                     27 k
+ python2-oslo-utils                              noarch                    3.16.0-1.el7                       iso                     66 k
+
+Transaction Summary
+===========================================================================================================================================
+Install  16 Packages (+19 Dependent packages)
+Upgrade              (  8 Dependent packages)
+
+Total download size: 4.5 M
+Downloading packages:
+Delta RPMs disabled because /usr/bin/applydeltarpm not installed.
+(1/43): openstack-trove-6.0.0-1.el7.noarch.rpm                                                                      | 6.9 kB  00:00:00     
+(2/43): openstack-trove-common-6.0.0-1.el7.noarch.rpm                                                               |  13 kB  00:00:00     
+(3/43): openstack-trove-api-6.0.0-1.el7.noarch.rpm                                                                  | 4.4 kB  00:00:00     
+(4/43): openstack-trove-conductor-6.0.0-1.el7.noarch.rpm                                                            | 5.5 kB  00:00:00     
+(5/43): openstack-trove-taskmanager-6.0.0-1.el7.noarch.rpm                                                          | 8.1 kB  00:00:00     
+(6/43): python-inotify-0.9.4-4.el7.noarch.rpm                                                                       |  49 kB  00:00:00     
+(7/43): python-oslo-concurrency-lang-3.14.0-1.el7.noarch.rpm                                                        | 5.4 kB  00:00:00     
+(8/43): python-mistralclient-2.1.2-1.el7.noarch.rpm                                                                 | 122 kB  00:00:00     
+(9/43): python-oslo-db-lang-4.13.5-1.el7.noarch.rpm                                                                 | 9.0 kB  00:00:00     
+(10/43): python-oslo-log-lang-3.16.0-1.el7.noarch.rpm                                                               | 4.9 kB  00:00:00     
+(11/43): python-oslo-middleware-lang-3.19.0-1.el7.noarch.rpm                                                        | 3.8 kB  00:00:00     
+(12/43): python-oslo-utils-lang-3.16.0-1.el7.noarch.rpm                                                             | 4.7 kB  00:00:00     
+(13/43): python-osprofiler-1.4.0-1.el7.noarch.rpm                                                                   |  92 kB  00:00:00     
+(14/43): python2-cinderclient-1.9.0-1.el7.noarch.rpm                                                                | 224 kB  00:00:00     
+(15/43): python2-debtcollector-1.8.0-1.el7.noarch.rpm                                                               |  27 kB  00:00:00     
+(16/43): python2-designateclient-2.3.0-1.el7.noarch.rpm                                                             | 111 kB  00:00:00     
+(17/43): python-trove-6.0.0-1.el7.noarch.rpm                                                                        | 1.0 MB  00:00:00     
+(18/43): python2-heatclient-1.5.0-1.el7.noarch.rpm                                                                  | 183 kB  00:00:00     
+(19/43): python2-keystoneauth1-2.12.2-1.el7.noarch.rpm                                                              | 311 kB  00:00:00     
+(20/43): python2-keystoneclient-3.5.0-1.el7.noarch.rpm                                                              | 234 kB  00:00:00     
+(21/43): python2-keystonemiddleware-4.9.0-1.el7.noarch.rpm                                                          |  92 kB  00:00:00     
+(22/43): python2-os-client-config-1.21.1-1.el7.noarch.rpm                                                           |  80 kB  00:00:00     
+(23/43): python2-neutronclient-6.0.0-2.el7.noarch.rpm                                                               | 220 kB  00:00:00     
+(24/43): python2-osc-lib-1.1.0-3.el7.noarch.rpm                                                                     |  59 kB  00:00:00     
+(25/43): python2-oslo-concurrency-3.14.0-1.el7.noarch.rpm                                                           |  35 kB  00:00:00     
+(26/43): python2-oslo-context-2.9.0-1.el7.noarch.rpm                                                                |  17 kB  00:00:00     
+(27/43): python2-oslo-config-3.17.1-1.el7.noarch.rpm                                                                | 178 kB  00:00:00     
+(28/43): python2-oslo-db-4.13.5-1.el7.noarch.rpm                                                                    | 131 kB  00:00:00     
+(29/43): python2-oslo-i18n-3.9.0-1.el7.noarch.rpm                                                                   |  57 kB  00:00:00     
+(30/43): python2-oslo-log-3.16.0-1.el7.noarch.rpm                                                                   |  51 kB  00:00:00     
+(31/43): python2-oslo-middleware-3.19.0-1.el7.noarch.rpm                                                            |  43 kB  00:00:00     
+(32/43): python2-oslo-messaging-5.10.1-1.el7.noarch.rpm                                                             | 317 kB  00:00:00     
+(33/43): python2-oslo-serialization-2.13.0-1.el7.noarch.rpm                                                         |  27 kB  00:00:00     
+(34/43): python2-oslo-service-1.16.0-1.el7.noarch.rpm                                                               |  59 kB  00:00:00     
+(35/43): python2-oslo-utils-3.16.0-1.el7.noarch.rpm                                                                 |  66 kB  00:00:00     
+(36/43): python2-pika_pool-0.1.3-3.el7.noarch.rpm                                                                   |  12 kB  00:00:00     
+(37/43): python2-pika-0.10.0-3.el7.noarch.rpm                                                                       | 195 kB  00:00:00     
+(38/43): python2-positional-1.1.1-2.el7.noarch.rpm                                                                  |  16 kB  00:00:00     
+(39/43): python2-requestsexceptions-1.1.3-1.el7.noarch.rpm                                                          |  11 kB  00:00:00     
+(40/43): python2-stevedore-1.17.1-1.el7.noarch.rpm                                                                  |  55 kB  00:00:00     
+(41/43): python2-swiftclient-3.1.0-1.el7.noarch.rpm                                                                 | 115 kB  00:00:00     
+(42/43): python2-xmltodict-0.10.1-1.el7.noarch.rpm                                                                  |  17 kB  00:00:00     
+(43/43): python2-troveclient-2.5.0-1.el7.noarch.rpm                                                                 | 374 kB  00:00:00     
+-------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                       20 MB/s | 4.5 MB  00:00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+Warning: RPMDB altered outside of yum.
+  Updating   : python2-oslo-i18n-3.9.0-1.el7.noarch                                                                                   1/65 
+  Installing : python2-stevedore-1.17.1-1.el7.noarch                                                                                  2/65 
+  Updating   : python2-debtcollector-1.8.0-1.el7.noarch                                                                               3/65 
+  Updating   : 2:python2-oslo-config-3.17.1-1.el7.noarch                                                                              4/65 
+  Installing : python2-positional-1.1.1-2.el7.noarch                                                                                  5/65 
+  Installing : python2-keystoneauth1-2.12.2-1.el7.noarch                                                                              6/65 
+  Updating   : python2-oslo-context-2.9.0-1.el7.noarch                                                                                7/65 
+  Updating   : python-osprofiler-1.4.0-1.el7.noarch                                                                                   8/65 
+  Installing : python-oslo-db-lang-4.13.5-1.el7.noarch                                                                                9/65 
+  Installing : python2-requestsexceptions-1.1.3-1.el7.noarch                                                                         10/65 
+  Updating   : python2-os-client-config-1.21.1-1.el7.noarch                                                                          11/65 
+  Installing : python-oslo-utils-lang-3.16.0-1.el7.noarch                                                                            12/65 
+  Updating   : python2-oslo-utils-3.16.0-1.el7.noarch                                                                                13/65 
+  Updating   : python2-oslo-serialization-2.13.0-1.el7.noarch                                                                        14/65 
+  Installing : 1:python2-keystoneclient-3.5.0-1.el7.noarch                                                                           15/65 
+  Installing : python2-swiftclient-3.1.0-1.el7.noarch                                                                                16/65 
+  Installing : python2-osc-lib-1.1.0-3.el7.noarch                                                                                    17/65 
+  Installing : python2-neutronclient-6.0.0-2.el7.noarch                                                                              18/65 
+  Installing : python2-designateclient-2.3.0-1.el7.noarch                                                                            19/65 
+  Installing : python2-heatclient-1.5.0-1.el7.noarch                                                                                 20/65 
+  Installing : python2-cinderclient-1.9.0-1.el7.noarch                                                                               21/65 
+  Installing : python2-keystonemiddleware-4.9.0-1.el7.noarch                                                                         22/65 
+  Installing : python-mistralclient-2.1.2-1.el7.noarch                                                                               23/65 
+  Installing : python2-troveclient-2.5.0-1.el7.noarch                                                                                24/65 
+  Installing : python2-oslo-db-4.13.5-1.el7.noarch                                                                                   25/65 
+  Installing : python-oslo-middleware-lang-3.19.0-1.el7.noarch                                                                       26/65 
+  Installing : python2-oslo-middleware-3.19.0-1.el7.noarch                                                                           27/65 
+  Installing : python2-pika-0.10.0-3.el7.noarch                                                                                      28/65 
+  Installing : python2-pika_pool-0.1.3-3.el7.noarch                                                                                  29/65 
+  Installing : python2-xmltodict-0.10.1-1.el7.noarch                                                                                 30/65 
+  Installing : python-oslo-concurrency-lang-3.14.0-1.el7.noarch                                                                      31/65 
+  Installing : python2-oslo-concurrency-3.14.0-1.el7.noarch                                                                          32/65 
+  Installing : python-inotify-0.9.4-4.el7.noarch                                                                                     33/65 
+  Installing : python-oslo-log-lang-3.16.0-1.el7.noarch                                                                              34/65 
+  Installing : python2-oslo-log-3.16.0-1.el7.noarch                                                                                  35/65 
+  Installing : python2-oslo-service-1.16.0-1.el7.noarch                                                                              36/65 
+  Installing : python2-oslo-messaging-5.10.1-1.el7.noarch                                                                            37/65 
+  Installing : 1:python-trove-6.0.0-1.el7.noarch                                                                                     38/65 
+  Installing : 1:openstack-trove-common-6.0.0-1.el7.noarch                                                                           39/65 
+  Installing : 1:openstack-trove-conductor-6.0.0-1.el7.noarch                                                                        40/65 
+  Installing : 1:openstack-trove-api-6.0.0-1.el7.noarch                                                                              41/65 
+  Installing : 1:openstack-trove-taskmanager-6.0.0-1.el7.noarch                                                                      42/65 
+  Installing : 1:openstack-trove-6.0.0-1.el7.noarch                                                                                  43/65 
+  Erasing    : python-oslo-messaging-2.5.0-1.el7.noarch                                                                              44/65 
+  Erasing    : python-keystonemiddleware-2.3.1-1.el7.noarch                                                                          45/65 
+  Erasing    : python-oslo-service-0.9.0-1.el7.noarch                                                                                46/65 
+  Erasing    : python-oslo-log-1.10.0-1.el7.noarch                                                                                   47/65 
+  Erasing    : python-heatclient-0.8.0-1.el7.noarch                                                                                  48/65 
+  Erasing    : python-oslo-db-2.6.0-3.el7.noarch                                                                                     49/65 
+  Erasing    : python-oslo-middleware-2.8.0-1.el7.noarch                                                                             50/65 
+  Erasing    : python-neutronclient-3.1.0-1.el7.noarch                                                                               51/65 
+  Erasing    : python-oslo-concurrency-2.6.1-3.el7.noarch                                                                            52/65 
+  Erasing    : python-troveclient-1.3.0-1.el7.noarch                                                                                 53/65 
+  Erasing    : python-swiftclient-2.6.0-1.el7.noarch                                                                                 54/65 
+  Erasing    : python-cinderclient-1.4.0-1.el7.noarch                                                                                55/65 
+  Erasing    : 1:python-keystoneclient-1.7.2-1.el7.noarch                                                                            56/65 
+  Cleanup    : python2-oslo-serialization-1.9.0-1.el7.noarch                                                                         57/65 
+  Cleanup    : python2-oslo-utils-2.5.0-1.el7.noarch                                                                                 58/65 
+  Cleanup    : 2:python2-oslo-config-2.4.0-1.el7.noarch                                                                              59/65 
+  Erasing    : python-stevedore-1.8.0-1.el7.noarch                                                                                   60/65 
+  Cleanup    : python2-debtcollector-0.8.0-1.el7.noarch                                                                              61/65 
+  Cleanup    : python2-oslo-i18n-2.6.0-1.el7.noarch                                                                                  62/65 
+  Cleanup    : python2-oslo-context-0.6.0-1.el7.noarch                                                                               63/65 
+  Cleanup    : python2-os-client-config-1.7.4-1.el7.noarch                                                                           64/65 
+  Cleanup    : python-osprofiler-0.3.0-1.el7.noarch                                                                                  65/65 
+  Verifying  : python2-stevedore-1.17.1-1.el7.noarch                                                                                  1/65 
+  Verifying  : python2-neutronclient-6.0.0-2.el7.noarch                                                                               2/65 
+  Verifying  : 1:openstack-trove-common-6.0.0-1.el7.noarch                                                                            3/65 
+  Verifying  : python-oslo-log-lang-3.16.0-1.el7.noarch                                                                               4/65 
+  Verifying  : python2-oslo-db-4.13.5-1.el7.noarch                                                                                    5/65 
+  Verifying  : python2-positional-1.1.1-2.el7.noarch                                                                                  6/65 
+  Verifying  : python2-oslo-log-3.16.0-1.el7.noarch                                                                                   7/65 
+  Verifying  : python2-cinderclient-1.9.0-1.el7.noarch                                                                                8/65 
+  Verifying  : 1:openstack-trove-conductor-6.0.0-1.el7.noarch                                                                         9/65 
+  Verifying  : python-inotify-0.9.4-4.el7.noarch                                                                                     10/65 
+  Verifying  : python2-designateclient-2.3.0-1.el7.noarch                                                                            11/65 
+  Verifying  : python2-troveclient-2.5.0-1.el7.noarch                                                                                12/65 
+  Verifying  : python2-pika_pool-0.1.3-3.el7.noarch                                                                                  13/65 
+  Verifying  : python-oslo-concurrency-lang-3.14.0-1.el7.noarch                                                                      14/65 
+  Verifying  : python2-oslo-context-2.9.0-1.el7.noarch                                                                               15/65 
+  Verifying  : python2-xmltodict-0.10.1-1.el7.noarch                                                                                 16/65 
+  Verifying  : 2:python2-oslo-config-3.17.1-1.el7.noarch                                                                             17/65 
+  Verifying  : python-osprofiler-1.4.0-1.el7.noarch                                                                                  18/65 
+  Verifying  : python2-keystoneauth1-2.12.2-1.el7.noarch                                                                             19/65 
+  Verifying  : python2-oslo-serialization-2.13.0-1.el7.noarch                                                                        20/65 
+  Verifying  : 1:openstack-trove-api-6.0.0-1.el7.noarch                                                                              21/65 
+  Verifying  : 1:python-trove-6.0.0-1.el7.noarch                                                                                     22/65 
+  Verifying  : python2-pika-0.10.0-3.el7.noarch                                                                                      23/65 
+  Verifying  : python-oslo-middleware-lang-3.19.0-1.el7.noarch                                                                       24/65 
+  Verifying  : python-oslo-utils-lang-3.16.0-1.el7.noarch                                                                            25/65 
+  Verifying  : python2-oslo-concurrency-3.14.0-1.el7.noarch                                                                          26/65 
+  Verifying  : python2-keystonemiddleware-4.9.0-1.el7.noarch                                                                         27/65 
+  Verifying  : python-mistralclient-2.1.2-1.el7.noarch                                                                               28/65 
+  Verifying  : python2-swiftclient-3.1.0-1.el7.noarch                                                                                29/65 
+  Verifying  : python2-requestsexceptions-1.1.3-1.el7.noarch                                                                         30/65 
+  Verifying  : python2-oslo-middleware-3.19.0-1.el7.noarch                                                                           31/65 
+  Verifying  : python2-oslo-i18n-3.9.0-1.el7.noarch                                                                                  32/65 
+  Verifying  : python2-heatclient-1.5.0-1.el7.noarch                                                                                 33/65 
+  Verifying  : 1:openstack-trove-6.0.0-1.el7.noarch                                                                                  34/65 
+  Verifying  : python2-osc-lib-1.1.0-3.el7.noarch                                                                                    35/65 
+  Verifying  : python2-oslo-service-1.16.0-1.el7.noarch                                                                              36/65 
+  Verifying  : python2-oslo-messaging-5.10.1-1.el7.noarch                                                                            37/65 
+  Verifying  : python2-oslo-utils-3.16.0-1.el7.noarch                                                                                38/65 
+  Verifying  : 1:openstack-trove-taskmanager-6.0.0-1.el7.noarch                                                                      39/65 
+  Verifying  : python-oslo-db-lang-4.13.5-1.el7.noarch                                                                               40/65 
+  Verifying  : python2-os-client-config-1.21.1-1.el7.noarch                                                                          41/65 
+  Verifying  : 1:python2-keystoneclient-3.5.0-1.el7.noarch                                                                           42/65 
+  Verifying  : python2-debtcollector-1.8.0-1.el7.noarch                                                                              43/65 
+  Verifying  : python2-debtcollector-0.8.0-1.el7.noarch                                                                              44/65 
+  Verifying  : python-osprofiler-0.3.0-1.el7.noarch                                                                                  45/65 
+  Verifying  : python-keystonemiddleware-2.3.1-1.el7.noarch                                                                          46/65 
+  Verifying  : python-troveclient-1.3.0-1.el7.noarch                                                                                 47/65 
+  Verifying  : 1:python-keystoneclient-1.7.2-1.el7.noarch                                                                            48/65 
+  Verifying  : python-oslo-service-0.9.0-1.el7.noarch                                                                                49/65 
+  Verifying  : python-swiftclient-2.6.0-1.el7.noarch                                                                                 50/65 
+  Verifying  : python-cinderclient-1.4.0-1.el7.noarch                                                                                51/65 
+  Verifying  : python-heatclient-0.8.0-1.el7.noarch                                                                                  52/65 
+  Verifying  : python2-os-client-config-1.7.4-1.el7.noarch                                                                           53/65 
+  Verifying  : python-oslo-db-2.6.0-3.el7.noarch                                                                                     54/65 
+  Verifying  : python-oslo-middleware-2.8.0-1.el7.noarch                                                                             55/65 
+  Verifying  : python-oslo-concurrency-2.6.1-3.el7.noarch                                                                            56/65 
+  Verifying  : python2-oslo-utils-2.5.0-1.el7.noarch                                                                                 57/65 
+  Verifying  : python-oslo-log-1.10.0-1.el7.noarch                                                                                   58/65 
+  Verifying  : python2-oslo-serialization-1.9.0-1.el7.noarch                                                                         59/65 
+  Verifying  : python-neutronclient-3.1.0-1.el7.noarch                                                                               60/65 
+  Verifying  : 2:python2-oslo-config-2.4.0-1.el7.noarch                                                                              61/65 
+  Verifying  : python-stevedore-1.8.0-1.el7.noarch                                                                                   62/65 
+  Verifying  : python2-oslo-i18n-2.6.0-1.el7.noarch                                                                                  63/65 
+  Verifying  : python-oslo-messaging-2.5.0-1.el7.noarch                                                                              64/65 
+  Verifying  : python2-oslo-context-0.6.0-1.el7.noarch                                                                               65/65 
+
+Installed:
+  openstack-trove.noarch 1:6.0.0-1.el7                               openstack-trove-api.noarch 1:6.0.0-1.el7                             
+  python2-cinderclient.noarch 0:1.9.0-1.el7                          python2-heatclient.noarch 0:1.5.0-1.el7                              
+  python2-keystoneclient.noarch 1:3.5.0-1.el7                        python2-keystonemiddleware.noarch 0:4.9.0-1.el7                      
+  python2-neutronclient.noarch 0:6.0.0-2.el7                         python2-oslo-concurrency.noarch 0:3.14.0-1.el7                       
+  python2-oslo-db.noarch 0:4.13.5-1.el7                              python2-oslo-log.noarch 0:3.16.0-1.el7                               
+  python2-oslo-messaging.noarch 0:5.10.1-1.el7                       python2-oslo-middleware.noarch 0:3.19.0-1.el7                        
+  python2-oslo-service.noarch 0:1.16.0-1.el7                         python2-stevedore.noarch 0:1.17.1-1.el7                              
+  python2-swiftclient.noarch 0:3.1.0-1.el7                           python2-troveclient.noarch 0:2.5.0-1.el7                             
+
+Dependency Installed:
+  openstack-trove-common.noarch 1:6.0.0-1.el7                         openstack-trove-conductor.noarch 1:6.0.0-1.el7                      
+  openstack-trove-taskmanager.noarch 1:6.0.0-1.el7                    python-inotify.noarch 0:0.9.4-4.el7                                 
+  python-mistralclient.noarch 0:2.1.2-1.el7                           python-oslo-concurrency-lang.noarch 0:3.14.0-1.el7                  
+  python-oslo-db-lang.noarch 0:4.13.5-1.el7                           python-oslo-log-lang.noarch 0:3.16.0-1.el7                          
+  python-oslo-middleware-lang.noarch 0:3.19.0-1.el7                   python-oslo-utils-lang.noarch 0:3.16.0-1.el7                        
+  python-trove.noarch 1:6.0.0-1.el7                                   python2-designateclient.noarch 0:2.3.0-1.el7                        
+  python2-keystoneauth1.noarch 0:2.12.2-1.el7                         python2-osc-lib.noarch 0:1.1.0-3.el7                                
+  python2-pika.noarch 0:0.10.0-3.el7                                  python2-pika_pool.noarch 0:0.1.3-3.el7                              
+  python2-positional.noarch 0:1.1.1-2.el7                             python2-requestsexceptions.noarch 0:1.1.3-1.el7                     
+  python2-xmltodict.noarch 0:0.10.1-1.el7                            
+
+Dependency Updated:
+  python-osprofiler.noarch 0:1.4.0-1.el7                                  python2-debtcollector.noarch 0:1.8.0-1.el7                       
+  python2-os-client-config.noarch 0:1.21.1-1.el7                          python2-oslo-config.noarch 2:3.17.1-1.el7                        
+  python2-oslo-context.noarch 0:2.9.0-1.el7                               python2-oslo-i18n.noarch 0:3.9.0-1.el7                           
+  python2-oslo-serialization.noarch 0:2.13.0-1.el7                        python2-oslo-utils.noarch 0:3.16.0-1.el7                         
+
+Replaced:
+  python-cinderclient.noarch 0:1.4.0-1.el7        python-heatclient.noarch 0:0.8.0-1.el7     python-keystoneclient.noarch 1:1.7.2-1.el7   
+  python-keystonemiddleware.noarch 0:2.3.1-1.el7  python-neutronclient.noarch 0:3.1.0-1.el7  python-oslo-concurrency.noarch 0:2.6.1-3.el7 
+  python-oslo-db.noarch 0:2.6.0-3.el7             python-oslo-log.noarch 0:1.10.0-1.el7      python-oslo-messaging.noarch 0:2.5.0-1.el7   
+  python-oslo-middleware.noarch 0:2.8.0-1.el7     python-oslo-service.noarch 0:0.9.0-1.el7   python-stevedore.noarch 0:1.8.0-1.el7        
+  python-swiftclient.noarch 0:2.6.0-1.el7         python-troveclient.noarch 0:1.3.0-1.el7   
+
+
+在 yum 源中有高版本 trove，并且在安装过程高版本 trove 组件也 update 了其他 openstack 组件，致使 glance image-list 命令无法使用，显示如下错误：
+Traceback (most recent call last):
+  File "/usr/bin/glance", line 6, in <module>
+    from glanceclient.shell import main
+  File "/usr/lib/python2.7/site-packages/glanceclient/shell.py", line 44, in <module>
+    from keystoneclient.openstack.common.apiclient import exceptions as ks_exc
+ImportError: No module named openstack.common.apiclient
+
+2. 查看 yum 历史命令
+
+[root@control-2 yum.repos.d]# yum history list
+Loaded plugins: fastestmirror, langpacks
+ID     | Command line             | Date and time    | Action(s)      | Altered
+-------------------------------------------------------------------------------
+    22 | -y install openstack-tro | 2018-04-25 08:22 | I, O, U        |   57  <
+    21 | -y install expect        | 2017-12-06 18:46 | Install        |    2 ><
+    20 | -y install openstack-das | 2017-11-08 09:16 | Install        |   53 > 
+    19 | -y install openstack-cin | 2017-11-07 19:10 | Install        |   16   
+    18 | -y install openstack-cei | 2017-11-07 18:53 | Install        |   27   
+    17 | -y install openstack-neu | 2017-11-07 17:09 | Install        |   27   
+    16 | -y install openstack-nov | 2017-11-07 15:36 | Install        |   30   
+    15 | install -y python-rbd ce | 2017-11-07 14:42 | I, U           |   18   
+    14 | -y install openstack-gla | 2017-11-07 14:05 | Install        |   43   
+    13 | -y install telnet        | 2017-11-07 11:28 | Install        |    1   
+    12 | -y install openstack-key | 2017-11-07 11:25 | Install        |   61   
+    11 | -y install ipmitool      | 2017-11-07 11:20 | Install        |    2   
+    10 | install rabbitmq-server  | 2017-11-07 10:23 | Install        |   23   
+     9 | -y install MariaDB-serve | 2017-11-07 08:58 | Install        |   12 EE
+     8 | install openstack-selinu | 2017-11-07 08:11 | Install        |   26   
+     7 | -y install openstack-sel | 2017-11-06 16:45 | Install        |    8   
+     6 | install -y python-openst | 2017-11-06 15:45 | Install        |   66   
+     5 | upgrade                  | 2017-11-06 15:20 | I, O, U        |   51  <
+     4 | install -y chrony        | 2017-11-06 14:01 | Update         |    1 > 
+     3 | install mariadb          | 2017-11-06 11:06 | I, O           |    4   
+history list
+
+
+从表中我们了解到，在 08:22 分，进行了安装 trove 组件操作，ID 为 22。
+
+3. 查看 ID 为 22 的详细操纵
+
+[root@control-2 yum.repos.d]# yum history info
+Loaded plugins: fastestmirror, langpacks
+Transaction ID : 22
+Begin time     : Wed Apr 25 08:22:33 2018
+Begin rpmdb    : 904:da1eabd2d9a17e50d45d1af55dc234ff66f01ac9
+End time       :            08:23:57 2018 (84 seconds)
+End rpmdb      : 925:1b0d1f48da4b28303bad7edcf105d61f2893372c
+User           : root <root>
+Return-Code    : Success
+Command Line   : -y install openstack-trove openstack-trove-api python-troveclient
+Transaction performed with:
+    Installed     rpm-4.11.3-21.el7.x86_64                      @anaconda
+    Installed     yum-3.4.3-150.el7.centos.noarch               @anaconda
+    Installed     yum-plugin-fastestmirror-1.1.31-40.el7.noarch @anaconda
+Packages Altered:
+    Install     openstack-trove-1:6.0.0-1.el7.noarch             @iso
+    Install     openstack-trove-api-1:6.0.0-1.el7.noarch         @iso
+    Dep-Install openstack-trove-common-1:6.0.0-1.el7.noarch      @iso
+    Dep-Install openstack-trove-conductor-1:6.0.0-1.el7.noarch   @iso
+    Dep-Install openstack-trove-taskmanager-1:6.0.0-1.el7.noarch @iso
+    Obsoleted   python-cinderclient-1.4.0-1.el7.noarch           @openstack
+    Obsoleted   python-heatclient-0.8.0-1.el7.noarch             @openstack
+    Dep-Install python-inotify-0.9.4-4.el7.noarch                @iso
+    Obsoleted   python-keystoneclient-1:1.7.2-1.el7.noarch       @openstack
+    Obsoleted   python-keystonemiddleware-2.3.1-1.el7.noarch     @openstack
+    Dep-Install python-mistralclient-2.1.2-1.el7.noarch          @iso
+    Obsoleted   python-neutronclient-3.1.0-1.el7.noarch          @openstack
+    Obsoleted   python-oslo-concurrency-2.6.1-3.el7.noarch       @openstack
+    Dep-Install python-oslo-concurrency-lang-3.14.0-1.el7.noarch @iso
+    Obsoleted   python-oslo-db-2.6.0-3.el7.noarch                @openstack
+    Dep-Install python-oslo-db-lang-4.13.5-1.el7.noarch          @iso
+    Obsoleted   python-oslo-log-1.10.0-1.el7.noarch              @openstack
+    Dep-Install python-oslo-log-lang-3.16.0-1.el7.noarch         @iso
+    Obsoleted   python-oslo-messaging-2.5.0-1.el7.noarch         @openstack
+    Obsoleted   python-oslo-middleware-2.8.0-1.el7.noarch        @openstack
+    Dep-Install python-oslo-middleware-lang-3.19.0-1.el7.noarch  @iso
+    Obsoleted   python-oslo-service-0.9.0-1.el7.noarch           @openstack
+    Dep-Install python-oslo-utils-lang-3.16.0-1.el7.noarch       @iso
+    Updated     python-osprofiler-0.3.0-1.el7.noarch             @openstack
+    Update                        1.4.0-1.el7.noarch             @iso
+    Obsoleted   python-stevedore-1.8.0-1.el7.noarch              @openstack
+    Obsoleted   python-swiftclient-2.6.0-1.el7.noarch            @openstack
+    Dep-Install python-trove-1:6.0.0-1.el7.noarch                @iso
+    Obsoleted   python-troveclient-1.3.0-1.el7.noarch            @openstack
+    Obsoleting  python2-cinderclient-1.9.0-1.el7.noarch          @iso
+    Updated     python2-debtcollector-0.8.0-1.el7.noarch         @openstack
+    Update                            1.8.0-1.el7.noarch         @iso
+    Dep-Install python2-designateclient-2.3.0-1.el7.noarch       @iso
+    Obsoleting  python2-heatclient-1.5.0-1.el7.noarch            @iso
+    Dep-Install python2-keystoneauth1-2.12.2-1.el7.noarch        @iso
+    Obsoleting  python2-keystoneclient-1:3.5.0-1.el7.noarch      @iso
+    Obsoleting  python2-keystonemiddleware-4.9.0-1.el7.noarch    @iso
+    Obsoleting  python2-neutronclient-6.0.0-2.el7.noarch         @iso
+    Updated     python2-os-client-config-1.7.4-1.el7.noarch      @openstack
+    Update                               1.21.1-1.el7.noarch     @iso
+    Dep-Install python2-osc-lib-1.1.0-3.el7.noarch               @iso
+    Obsoleting  python2-oslo-concurrency-3.14.0-1.el7.noarch     @iso
+    Updated     python2-oslo-config-2:2.4.0-1.el7.noarch         @openstack
+    Update                          2:3.17.1-1.el7.noarch        @iso
+    Updated     python2-oslo-context-0.6.0-1.el7.noarch          @openstack
+    Update                           2.9.0-1.el7.noarch          @iso
+    Obsoleting  python2-oslo-db-4.13.5-1.el7.noarch              @iso
+    Updated     python2-oslo-i18n-2.6.0-1.el7.noarch             @openstack
+    Update                        3.9.0-1.el7.noarch             @iso
+    Obsoleting  python2-oslo-log-3.16.0-1.el7.noarch             @iso
+    Obsoleting  python2-oslo-messaging-5.10.1-1.el7.noarch       @iso
+    Obsoleting  python2-oslo-middleware-3.19.0-1.el7.noarch      @iso
+    Updated     python2-oslo-serialization-1.9.0-1.el7.noarch    @openstack
+    Update                                 2.13.0-1.el7.noarch   @iso
+    Obsoleting  python2-oslo-service-1.16.0-1.el7.noarch         @iso
+    Updated     python2-oslo-utils-2.5.0-1.el7.noarch            @openstack
+    Update                         3.16.0-1.el7.noarch           @iso
+    Dep-Install python2-pika-0.10.0-3.el7.noarch                 @iso
+    Dep-Install python2-pika_pool-0.1.3-3.el7.noarch             @iso
+    Dep-Install python2-positional-1.1.1-2.el7.noarch            @iso
+    Dep-Install python2-requestsexceptions-1.1.3-1.el7.noarch    @iso
+    Obsoleting  python2-stevedore-1.17.1-1.el7.noarch            @iso
+    Obsoleting  python2-swiftclient-3.1.0-1.el7.noarch           @iso
+    Obsoleting  python2-troveclient-2.5.0-1.el7.noarch           @iso
+    Dep-Install python2-xmltodict-0.10.1-1.el7.noarch            @iso
+history list
+
+4. 执行回滚操作
+
+[root@control-2 yum.repos.d]# yum history undo 22
+Loaded plugins: fastestmirror, langpacks
+Undoing transaction 22, from Wed Apr 25 08:22:33 2018
+    Install     openstack-trove-1:6.0.0-1.el7.noarch             @iso
+    Install     openstack-trove-api-1:6.0.0-1.el7.noarch         @iso
+    Dep-Install openstack-trove-common-1:6.0.0-1.el7.noarch      @iso
+    Dep-Install openstack-trove-conductor-1:6.0.0-1.el7.noarch   @iso
+    Dep-Install openstack-trove-taskmanager-1:6.0.0-1.el7.noarch @iso
+    Obsoleted   python-cinderclient-1.4.0-1.el7.noarch           @openstack
+    Obsoleted   python-heatclient-0.8.0-1.el7.noarch             @openstack
+    Dep-Install python-inotify-0.9.4-4.el7.noarch                @iso
+    Obsoleted   python-keystoneclient-1:1.7.2-1.el7.noarch       @openstack
+    Obsoleted   python-keystonemiddleware-2.3.1-1.el7.noarch     @openstack
+    Dep-Install python-mistralclient-2.1.2-1.el7.noarch          @iso
+    Obsoleted   python-neutronclient-3.1.0-1.el7.noarch          @openstack
+    Obsoleted   python-oslo-concurrency-2.6.1-3.el7.noarch       @openstack
+    Dep-Install python-oslo-concurrency-lang-3.14.0-1.el7.noarch @iso
+    Obsoleted   python-oslo-db-2.6.0-3.el7.noarch                @openstack
+    Dep-Install python-oslo-db-lang-4.13.5-1.el7.noarch          @iso
+    Obsoleted   python-oslo-log-1.10.0-1.el7.noarch              @openstack
+    Dep-Install python-oslo-log-lang-3.16.0-1.el7.noarch         @iso
+    Obsoleted   python-oslo-messaging-2.5.0-1.el7.noarch         @openstack
+    Obsoleted   python-oslo-middleware-2.8.0-1.el7.noarch        @openstack
+    Dep-Install python-oslo-middleware-lang-3.19.0-1.el7.noarch  @iso
+    Obsoleted   python-oslo-service-0.9.0-1.el7.noarch           @openstack
+    Dep-Install python-oslo-utils-lang-3.16.0-1.el7.noarch       @iso
+    Updated     python-osprofiler-0.3.0-1.el7.noarch             @openstack
+    Update                        1.4.0-1.el7.noarch             @iso
+    Obsoleted   python-stevedore-1.8.0-1.el7.noarch              @openstack
+    Obsoleted   python-swiftclient-2.6.0-1.el7.noarch            @openstack
+    Dep-Install python-trove-1:6.0.0-1.el7.noarch                @iso
+    Obsoleted   python-troveclient-1.3.0-1.el7.noarch            @openstack
+    Obsoleting  python2-cinderclient-1.9.0-1.el7.noarch          @iso
+    Updated     python2-debtcollector-0.8.0-1.el7.noarch         @openstack
+    Update                            1.8.0-1.el7.noarch         @iso
+    Dep-Install python2-designateclient-2.3.0-1.el7.noarch       @iso
+    Obsoleting  python2-heatclient-1.5.0-1.el7.noarch            @iso
+    Dep-Install python2-keystoneauth1-2.12.2-1.el7.noarch        @iso
+    Obsoleting  python2-keystoneclient-1:3.5.0-1.el7.noarch      @iso
+    Obsoleting  python2-keystonemiddleware-4.9.0-1.el7.noarch    @iso
+    Obsoleting  python2-neutronclient-6.0.0-2.el7.noarch         @iso
+    Updated     python2-os-client-config-1.7.4-1.el7.noarch      @openstack
+    Update                               1.21.1-1.el7.noarch     @iso
+    Dep-Install python2-osc-lib-1.1.0-3.el7.noarch               @iso
+    Obsoleting  python2-oslo-concurrency-3.14.0-1.el7.noarch     @iso
+    Updated     python2-oslo-config-2:2.4.0-1.el7.noarch         @openstack
+    Update                          2:3.17.1-1.el7.noarch        @iso
+    Updated     python2-oslo-context-0.6.0-1.el7.noarch          @openstack
+    Update                           2.9.0-1.el7.noarch          @iso
+    Obsoleting  python2-oslo-db-4.13.5-1.el7.noarch              @iso
+    Updated     python2-oslo-i18n-2.6.0-1.el7.noarch             @openstack
+    Update                        3.9.0-1.el7.noarch             @iso
+    Obsoleting  python2-oslo-log-3.16.0-1.el7.noarch             @iso
+    Obsoleting  python2-oslo-messaging-5.10.1-1.el7.noarch       @iso
+    Obsoleting  python2-oslo-middleware-3.19.0-1.el7.noarch      @iso
+    Updated     python2-oslo-serialization-1.9.0-1.el7.noarch    @openstack
+    Update                                 2.13.0-1.el7.noarch   @iso
+    Obsoleting  python2-oslo-service-1.16.0-1.el7.noarch         @iso
+    Updated     python2-oslo-utils-2.5.0-1.el7.noarch            @openstack
+    Update                         3.16.0-1.el7.noarch           @iso
+    Dep-Install python2-pika-0.10.0-3.el7.noarch                 @iso
+    Dep-Install python2-pika_pool-0.1.3-3.el7.noarch             @iso
+    Dep-Install python2-positional-1.1.1-2.el7.noarch            @iso
+    Dep-Install python2-requestsexceptions-1.1.3-1.el7.noarch    @iso
+    Obsoleting  python2-stevedore-1.17.1-1.el7.noarch            @iso
+    Obsoleting  python2-swiftclient-3.1.0-1.el7.noarch           @iso
+    Obsoleting  python2-troveclient-2.5.0-1.el7.noarch           @iso
+    Dep-Install python2-xmltodict-0.10.1-1.el7.noarch            @iso
+Loading mirror speeds from cached hostfile
+Resolving Dependencies
+--> Running transaction check
+---> Package openstack-trove.noarch 1:6.0.0-1.el7 will be erased
+---> Package openstack-trove-api.noarch 1:6.0.0-1.el7 will be erased
+---> Package openstack-trove-common.noarch 1:6.0.0-1.el7 will be erased
+---> Package openstack-trove-conductor.noarch 1:6.0.0-1.el7 will be erased
+---> Package openstack-trove-taskmanager.noarch 1:6.0.0-1.el7 will be erased
+---> Package python-cinderclient.noarch 0:1.4.0-1.el7 will be installed
+---> Package python-heatclient.noarch 0:0.8.0-1.el7 will be installed
+---> Package python-inotify.noarch 0:0.9.4-4.el7 will be erased
+---> Package python-keystoneclient.noarch 1:1.7.2-1.el7 will be installed
+---> Package python-keystonemiddleware.noarch 0:2.3.1-1.el7 will be installed
+---> Package python-mistralclient.noarch 0:2.1.2-1.el7 will be erased
+---> Package python-neutronclient.noarch 0:3.1.0-1.el7 will be installed
+---> Package python-oslo-concurrency.noarch 0:2.6.1-3.el7 will be installed
+---> Package python-oslo-concurrency-lang.noarch 0:3.14.0-1.el7 will be erased
+---> Package python-oslo-db.noarch 0:2.6.0-3.el7 will be installed
+---> Package python-oslo-db-lang.noarch 0:4.13.5-1.el7 will be erased
+---> Package python-oslo-log.noarch 0:1.10.0-1.el7 will be installed
+---> Package python-oslo-log-lang.noarch 0:3.16.0-1.el7 will be erased
+---> Package python-oslo-messaging.noarch 0:2.5.0-1.el7 will be installed
+---> Package python-oslo-middleware.noarch 0:2.8.0-1.el7 will be installed
+---> Package python-oslo-middleware-lang.noarch 0:3.19.0-1.el7 will be erased
+---> Package python-oslo-service.noarch 0:0.9.0-1.el7 will be installed
+---> Package python-oslo-utils-lang.noarch 0:3.16.0-1.el7 will be erased
+---> Package python-osprofiler.noarch 0:0.3.0-1.el7 will be a downgrade
+---> Package python-osprofiler.noarch 0:1.4.0-1.el7 will be erased
+---> Package python-stevedore.noarch 0:1.8.0-1.el7 will be installed
+---> Package python-swiftclient.noarch 0:2.6.0-1.el7 will be installed
+---> Package python-trove.noarch 1:6.0.0-1.el7 will be erased
+---> Package python-troveclient.noarch 0:1.3.0-1.el7 will be installed
+---> Package python2-cinderclient.noarch 0:1.9.0-1.el7 will be erased
+---> Package python2-debtcollector.noarch 0:0.8.0-1.el7 will be a downgrade
+---> Package python2-debtcollector.noarch 0:1.8.0-1.el7 will be erased
+---> Package python2-designateclient.noarch 0:2.3.0-1.el7 will be erased
+---> Package python2-heatclient.noarch 0:1.5.0-1.el7 will be erased
+---> Package python2-keystoneauth1.noarch 0:2.12.2-1.el7 will be erased
+---> Package python2-keystoneclient.noarch 1:3.5.0-1.el7 will be erased
+---> Package python2-keystonemiddleware.noarch 0:4.9.0-1.el7 will be erased
+---> Package python2-neutronclient.noarch 0:6.0.0-2.el7 will be erased
+---> Package python2-os-client-config.noarch 0:1.7.4-1.el7 will be a downgrade
+---> Package python2-os-client-config.noarch 0:1.21.1-1.el7 will be erased
+---> Package python2-osc-lib.noarch 0:1.1.0-3.el7 will be erased
+---> Package python2-oslo-concurrency.noarch 0:3.14.0-1.el7 will be erased
+---> Package python2-oslo-config.noarch 2:2.4.0-1.el7 will be a downgrade
+---> Package python2-oslo-config.noarch 2:3.17.1-1.el7 will be erased
+---> Package python2-oslo-context.noarch 0:0.6.0-1.el7 will be a downgrade
+---> Package python2-oslo-context.noarch 0:2.9.0-1.el7 will be erased
+---> Package python2-oslo-db.noarch 0:4.13.5-1.el7 will be erased
+---> Package python2-oslo-i18n.noarch 0:2.6.0-1.el7 will be a downgrade
+---> Package python2-oslo-i18n.noarch 0:3.9.0-1.el7 will be erased
+---> Package python2-oslo-log.noarch 0:3.16.0-1.el7 will be erased
+---> Package python2-oslo-messaging.noarch 0:5.10.1-1.el7 will be erased
+---> Package python2-oslo-middleware.noarch 0:3.19.0-1.el7 will be erased
+---> Package python2-oslo-serialization.noarch 0:1.9.0-1.el7 will be a downgrade
+---> Package python2-oslo-serialization.noarch 0:2.13.0-1.el7 will be erased
+---> Package python2-oslo-service.noarch 0:1.16.0-1.el7 will be erased
+---> Package python2-oslo-utils.noarch 0:2.5.0-1.el7 will be a downgrade
+---> Package python2-oslo-utils.noarch 0:3.16.0-1.el7 will be erased
+---> Package python2-pika.noarch 0:0.10.0-3.el7 will be erased
+---> Package python2-pika_pool.noarch 0:0.1.3-3.el7 will be erased
+---> Package python2-positional.noarch 0:1.1.1-2.el7 will be erased
+---> Package python2-requestsexceptions.noarch 0:1.1.3-1.el7 will be erased
+---> Package python2-stevedore.noarch 0:1.17.1-1.el7 will be erased
+---> Package python2-swiftclient.noarch 0:3.1.0-1.el7 will be erased
+---> Package python2-troveclient.noarch 0:2.5.0-1.el7 will be erased
+---> Package python2-xmltodict.noarch 0:0.10.1-1.el7 will be erased
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+===========================================================================================================================================
+ Package                                         Arch                      Version                           Repository               Size
+===========================================================================================================================================
+Installing:
+ python-cinderclient                             noarch                    1.4.0-1.el7                       iso                     186 k
+ python-heatclient                               noarch                    0.8.0-1.el7                       iso                     127 k
+ python-keystoneclient                           noarch                    1:1.7.2-1.el7                     iso                     606 k
+ python-keystonemiddleware                       noarch                    2.3.1-1.el7                       iso                      86 k
+ python-neutronclient                            noarch                    3.1.0-1.el7                       iso                     182 k
+ python-oslo-concurrency                         noarch                    2.6.1-3.el7                       iso                      34 k
+ python-oslo-db                                  noarch                    2.6.0-3.el7                       iso                     233 k
+ python-oslo-log                                 noarch                    1.10.0-1.el7                      iso                      68 k
+ python-oslo-messaging                           noarch                    2.5.0-1.el7                       iso                     335 k
+ python-oslo-middleware                          noarch                    2.8.0-1.el7                       iso                      56 k
+ python-oslo-service                             noarch                    0.9.0-1.el7                       iso                     166 k
+ python-stevedore                                noarch                    1.8.0-1.el7                       iso                      54 k
+ python-swiftclient                              noarch                    2.6.0-1.el7                       iso                     102 k
+ python-troveclient                              noarch                    1.3.0-1.el7                       iso                     326 k
+Removing:
+ openstack-trove                                 noarch                    1:6.0.0-1.el7                     @iso                    9.9 k
+ openstack-trove-api                             noarch                    1:6.0.0-1.el7                     @iso                    372  
+ openstack-trove-common                          noarch                    1:6.0.0-1.el7                     @iso                     21 k
+ openstack-trove-conductor                       noarch                    1:6.0.0-1.el7                     @iso                    2.2 k
+ openstack-trove-taskmanager                     noarch                    1:6.0.0-1.el7                     @iso                    8.9 k
+ python-inotify                                  noarch                    0.9.4-4.el7                       @iso                    256 k
+ python-mistralclient                            noarch                    2.1.2-1.el7                       @iso                    508 k
+ python-oslo-concurrency-lang                    noarch                    3.14.0-1.el7                      @iso                    8.2 k
+ python-oslo-db-lang                             noarch                    4.13.5-1.el7                      @iso                     17 k
+ python-oslo-log-lang                            noarch                    3.16.0-1.el7                      @iso                    6.7 k
+ python-oslo-middleware-lang                     noarch                    3.19.0-1.el7                      @iso                    1.6 k
+ python-oslo-utils-lang                          noarch                    3.16.0-1.el7                      @iso                    5.1 k
+ python-trove                                    noarch                    1:6.0.0-1.el7                     @iso                    4.3 M
+ python2-cinderclient                            noarch                    1.9.0-1.el7                       @iso                    1.1 M
+ python2-designateclient                         noarch                    2.3.0-1.el7                       @iso                    493 k
+ python2-heatclient                              noarch                    1.5.0-1.el7                       @iso                    787 k
+ python2-keystoneauth1                           noarch                    2.12.2-1.el7                      @iso                    1.4 M
+ python2-keystoneclient                          noarch                    1:3.5.0-1.el7                     @iso                    1.1 M
+ python2-keystonemiddleware                      noarch                    4.9.0-1.el7                       @iso                    327 k
+ python2-neutronclient                           noarch                    6.0.0-2.el7                       @iso                    1.0 M
+ python2-osc-lib                                 noarch                    1.1.0-3.el7                       @iso                    187 k
+ python2-oslo-concurrency                        noarch                    3.14.0-1.el7                      @iso                     99 k
+ python2-oslo-db                                 noarch                    4.13.5-1.el7                      @iso                    639 k
+ python2-oslo-log                                noarch                    3.16.0-1.el7                      @iso                    146 k
+ python2-oslo-messaging                          noarch                    5.10.1-1.el7                      @iso                    1.4 M
+ python2-oslo-middleware                         noarch                    3.19.0-1.el7                      @iso                    137 k
+ python2-oslo-service                            noarch                    1.16.0-1.el7                      @iso                    200 k
+ python2-pika                                    noarch                    0.10.0-3.el7                      @iso                    1.2 M
+ python2-pika_pool                               noarch                    0.1.3-3.el7                       @iso                     29 k
+ python2-positional                              noarch                    1.1.1-2.el7                       @iso                     36 k
+ python2-requestsexceptions                      noarch                    1.1.3-1.el7                       @iso                     17 k
+ python2-stevedore                               noarch                    1.17.1-1.el7                      @iso                    230 k
+ python2-swiftclient                             noarch                    3.1.0-1.el7                       @iso                    511 k
+ python2-troveclient                             noarch                    2.5.0-1.el7                       @iso                    1.8 M
+ python2-xmltodict                               noarch                    0.10.1-1.el7                      @iso                     36 k
+Downgrading:
+ python-osprofiler                               noarch                    0.3.0-1.el7                       iso                      42 k
+ python2-debtcollector                           noarch                    0.8.0-1.el7                       iso                      27 k
+ python2-os-client-config                        noarch                    1.7.4-1.el7                       iso                      48 k
+ python2-oslo-config                             noarch                    2:2.4.0-1.el7                     iso                     136 k
+ python2-oslo-context                            noarch                    0.6.0-1.el7                       iso                      18 k
+ python2-oslo-i18n                               noarch                    2.6.0-1.el7                       iso                      55 k
+ python2-oslo-serialization                      noarch                    1.9.0-1.el7                       iso                      27 k
+ python2-oslo-utils                              noarch                    2.5.0-1.el7                       iso                      96 k
+
+Transaction Summary
+===========================================================================================================================================
+Install    14 Packages
+Remove     35 Packages
+Downgrade   8 Packages
+
+Total download size: 2.9 M
+Is this ok [y/d/N]: y
+Downloading packages:
+(1/22): python-cinderclient-1.4.0-1.el7.noarch.rpm                                                                  | 186 kB  00:00:00     
+(2/22): python-heatclient-0.8.0-1.el7.noarch.rpm                                                                    | 127 kB  00:00:00     
+(3/22): python-keystonemiddleware-2.3.1-1.el7.noarch.rpm                                                            |  86 kB  00:00:00     
+(4/22): python-keystoneclient-1.7.2-1.el7.noarch.rpm                                                                | 606 kB  00:00:00     
+(5/22): python-neutronclient-3.1.0-1.el7.noarch.rpm                                                                 | 182 kB  00:00:00     
+(6/22): python-oslo-concurrency-2.6.1-3.el7.noarch.rpm                                                              |  34 kB  00:00:00     
+(7/22): python-oslo-log-1.10.0-1.el7.noarch.rpm                                                                     |  68 kB  00:00:00     
+(8/22): python-oslo-db-2.6.0-3.el7.noarch.rpm                                                                       | 233 kB  00:00:00     
+(9/22): python-oslo-middleware-2.8.0-1.el7.noarch.rpm                                                               |  56 kB  00:00:00     
+(10/22): python-oslo-service-0.9.0-1.el7.noarch.rpm                                                                 | 166 kB  00:00:00     
+(11/22): python-oslo-messaging-2.5.0-1.el7.noarch.rpm                                                               | 335 kB  00:00:00     
+(12/22): python-stevedore-1.8.0-1.el7.noarch.rpm                                                                    |  54 kB  00:00:00     
+(13/22): python-osprofiler-0.3.0-1.el7.noarch.rpm                                                                   |  42 kB  00:00:00     
+(14/22): python-swiftclient-2.6.0-1.el7.noarch.rpm                                                                  | 102 kB  00:00:00     
+(15/22): python2-debtcollector-0.8.0-1.el7.noarch.rpm                                                               |  27 kB  00:00:00     
+(16/22): python-troveclient-1.3.0-1.el7.noarch.rpm                                                                  | 326 kB  00:00:00     
+(17/22): python2-os-client-config-1.7.4-1.el7.noarch.rpm                                                            |  48 kB  00:00:00     
+(18/22): python2-oslo-config-2.4.0-1.el7.noarch.rpm                                                                 | 136 kB  00:00:00     
+(19/22): python2-oslo-context-0.6.0-1.el7.noarch.rpm                                                                |  18 kB  00:00:00     
+(20/22): python2-oslo-i18n-2.6.0-1.el7.noarch.rpm                                                                   |  55 kB  00:00:00     
+(21/22): python2-oslo-serialization-1.9.0-1.el7.noarch.rpm                                                          |  27 kB  00:00:00     
+(22/22): python2-oslo-utils-2.5.0-1.el7.noarch.rpm                                                                  |  96 kB  00:00:00     
+-------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                       12 MB/s | 2.9 MB  00:00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : python2-oslo-i18n-2.6.0-1.el7.noarch                                                                                   1/65 
+  Installing : python2-oslo-context-0.6.0-1.el7.noarch                                                                                2/65 
+  Installing : python-stevedore-1.8.0-1.el7.noarch                                                                                    3/65 
+  Installing : 2:python2-oslo-config-2.4.0-1.el7.noarch                                                                               4/65 
+  Installing : python2-debtcollector-0.8.0-1.el7.noarch                                                                               5/65 
+  Installing : python2-oslo-utils-2.5.0-1.el7.noarch                                                                                  6/65 
+  Installing : python2-oslo-serialization-1.9.0-1.el7.noarch                                                                          7/65 
+  Installing : 1:python-keystoneclient-1.7.2-1.el7.noarch                                                                             8/65 
+  Installing : python-oslo-log-1.10.0-1.el7.noarch                                                                                    9/65 
+  Installing : python-swiftclient-2.6.0-1.el7.noarch                                                                                 10/65 
+  Installing : python-oslo-concurrency-2.6.1-3.el7.noarch                                                                            11/65 
+  Installing : python-oslo-service-0.9.0-1.el7.noarch                                                                                12/65 
+  Installing : python-oslo-middleware-2.8.0-1.el7.noarch                                                                             13/65 
+  Installing : python-oslo-messaging-2.5.0-1.el7.noarch                                                                              14/65 
+  Installing : python-heatclient-0.8.0-1.el7.noarch                                                                                  15/65 
+  Installing : python-keystonemiddleware-2.3.1-1.el7.noarch                                                                          16/65 
+  Installing : python-troveclient-1.3.0-1.el7.noarch                                                                                 17/65 
+  Installing : python-cinderclient-1.4.0-1.el7.noarch                                                                                18/65 
+  Installing : python-neutronclient-3.1.0-1.el7.noarch                                                                               19/65 
+  Installing : python-oslo-db-2.6.0-3.el7.noarch                                                                                     20/65 
+  Installing : python2-os-client-config-1.7.4-1.el7.noarch                                                                           21/65 
+  Installing : python-osprofiler-0.3.0-1.el7.noarch                                                                                  22/65 
+  Erasing    : 1:openstack-trove-6.0.0-1.el7.noarch                                                                                  23/65 
+  Erasing    : 1:openstack-trove-api-6.0.0-1.el7.noarch                                                                              24/65 
+  Erasing    : 1:openstack-trove-conductor-6.0.0-1.el7.noarch                                                                        25/65 
+warning: /etc/trove/trove-conductor.conf saved as /etc/trove/trove-conductor.conf.rpmsave
+  Erasing    : 1:openstack-trove-taskmanager-6.0.0-1.el7.noarch                                                                      26/65 
+warning: /etc/trove/trove-taskmanager.conf saved as /etc/trove/trove-taskmanager.conf.rpmsave
+  Erasing    : 1:openstack-trove-common-6.0.0-1.el7.noarch                                                                           27/65 
+warning: /etc/trove/trove.conf saved as /etc/trove/trove.conf.rpmsave
+  Erasing    : 1:python-trove-6.0.0-1.el7.noarch                                                                                     28/65 
+  Erasing    : python2-oslo-messaging-5.10.1-1.el7.noarch                                                                            29/65 
+  Erasing    : python2-keystonemiddleware-4.9.0-1.el7.noarch                                                                         30/65 
+  Erasing    : python2-heatclient-1.5.0-1.el7.noarch                                                                                 31/65 
+  Erasing    : python2-neutronclient-6.0.0-2.el7.noarch                                                                              32/65 
+  Erasing    : python2-oslo-middleware-3.19.0-1.el7.noarch                                                                           33/65 
+  Erasing    : python2-oslo-db-4.13.5-1.el7.noarch                                                                                   34/65 
+  Erasing    : python2-troveclient-2.5.0-1.el7.noarch                                                                                35/65 
+  Erasing    : python2-oslo-service-1.16.0-1.el7.noarch                                                                              36/65 
+  Erasing    : python2-oslo-log-3.16.0-1.el7.noarch                                                                                  37/65 
+  Erasing    : python2-designateclient-2.3.0-1.el7.noarch                                                                            38/65 
+  Erasing    : python2-osc-lib-1.1.0-3.el7.noarch                                                                                    39/65 
+  Erasing    : python2-oslo-concurrency-3.14.0-1.el7.noarch                                                                          40/65 
+  Cleanup    : python2-os-client-config-1.21.1-1.el7.noarch                                                                          41/65 
+  Erasing    : python-mistralclient-2.1.2-1.el7.noarch                                                                               42/65 
+  Cleanup    : python2-oslo-context-2.9.0-1.el7.noarch                                                                               43/65 
+  Erasing    : python2-swiftclient-3.1.0-1.el7.noarch                                                                                44/65 
+  Erasing    : python2-pika_pool-0.1.3-3.el7.noarch                                                                                  45/65 
+  Erasing    : python2-cinderclient-1.9.0-1.el7.noarch                                                                               46/65 
+  Erasing    : 1:python2-keystoneclient-3.5.0-1.el7.noarch                                                                           47/65 
+  Erasing    : python2-keystoneauth1-2.12.2-1.el7.noarch                                                                             48/65 
+  Cleanup    : python2-oslo-serialization-2.13.0-1.el7.noarch                                                                        49/65 
+  Cleanup    : python2-oslo-utils-3.16.0-1.el7.noarch                                                                                50/65 
+  Cleanup    : 2:python2-oslo-config-3.17.1-1.el7.noarch                                                                             51/65 
+  Cleanup    : python2-debtcollector-1.8.0-1.el7.noarch                                                                              52/65 
+  Cleanup    : python2-oslo-i18n-3.9.0-1.el7.noarch                                                                                  53/65 
+  Erasing    : python2-stevedore-1.17.1-1.el7.noarch                                                                                 54/65 
+  Erasing    : python-oslo-utils-lang-3.16.0-1.el7.noarch                                                                            55/65 
+  Erasing    : python2-positional-1.1.1-2.el7.noarch                                                                                 56/65 
+  Erasing    : python2-pika-0.10.0-3.el7.noarch                                                                                      57/65 
+  Cleanup    : python-osprofiler-1.4.0-1.el7.noarch                                                                                  58/65 
+  Erasing    : python2-requestsexceptions-1.1.3-1.el7.noarch                                                                         59/65 
+  Erasing    : python-oslo-concurrency-lang-3.14.0-1.el7.noarch                                                                      60/65 
+  Erasing    : python-inotify-0.9.4-4.el7.noarch                                                                                     61/65 
+  Erasing    : python-oslo-log-lang-3.16.0-1.el7.noarch                                                                              62/65 
+  Erasing    : python-oslo-db-lang-4.13.5-1.el7.noarch                                                                               63/65 
+  Erasing    : python-oslo-middleware-lang-3.19.0-1.el7.noarch                                                                       64/65 
+  Erasing    : python2-xmltodict-0.10.1-1.el7.noarch                                                                                 65/65 
+  Verifying  : python2-debtcollector-0.8.0-1.el7.noarch                                                                               1/65 
+  Verifying  : python-osprofiler-0.3.0-1.el7.noarch                                                                                   2/65 
+  Verifying  : python-keystonemiddleware-2.3.1-1.el7.noarch                                                                           3/65 
+  Verifying  : python-troveclient-1.3.0-1.el7.noarch                                                                                  4/65 
+  Verifying  : 1:python-keystoneclient-1.7.2-1.el7.noarch                                                                             5/65 
+  Verifying  : python-oslo-service-0.9.0-1.el7.noarch                                                                                 6/65 
+  Verifying  : python-swiftclient-2.6.0-1.el7.noarch                                                                                  7/65 
+  Verifying  : python-cinderclient-1.4.0-1.el7.noarch                                                                                 8/65 
+  Verifying  : python-heatclient-0.8.0-1.el7.noarch                                                                                   9/65 
+  Verifying  : python-oslo-db-2.6.0-3.el7.noarch                                                                                     10/65 
+  Verifying  : python-oslo-middleware-2.8.0-1.el7.noarch                                                                             11/65 
+  Verifying  : python-oslo-concurrency-2.6.1-3.el7.noarch                                                                            12/65 
+  Verifying  : python2-oslo-utils-2.5.0-1.el7.noarch                                                                                 13/65 
+  Verifying  : python-oslo-log-1.10.0-1.el7.noarch                                                                                   14/65 
+  Verifying  : python2-oslo-serialization-1.9.0-1.el7.noarch                                                                         15/65 
+  Verifying  : python-neutronclient-3.1.0-1.el7.noarch                                                                               16/65 
+  Verifying  : 2:python2-oslo-config-2.4.0-1.el7.noarch                                                                              17/65 
+  Verifying  : python-stevedore-1.8.0-1.el7.noarch                                                                                   18/65 
+  Verifying  : python2-oslo-i18n-2.6.0-1.el7.noarch                                                                                  19/65 
+  Verifying  : python2-os-client-config-1.7.4-1.el7.noarch                                                                           20/65 
+  Verifying  : python-oslo-messaging-2.5.0-1.el7.noarch                                                                              21/65 
+  Verifying  : python2-oslo-context-0.6.0-1.el7.noarch                                                                               22/65 
+  Verifying  : python2-stevedore-1.17.1-1.el7.noarch                                                                                 23/65 
+  Verifying  : python2-neutronclient-6.0.0-2.el7.noarch                                                                              24/65 
+  Verifying  : 1:openstack-trove-common-6.0.0-1.el7.noarch                                                                           25/65 
+  Verifying  : python-oslo-log-lang-3.16.0-1.el7.noarch                                                                              26/65 
+  Verifying  : python2-positional-1.1.1-2.el7.noarch                                                                                 27/65 
+  Verifying  : python2-keystonemiddleware-4.9.0-1.el7.noarch                                                                         28/65 
+  Verifying  : python2-oslo-service-1.16.0-1.el7.noarch                                                                              29/65 
+  Verifying  : 1:openstack-trove-conductor-6.0.0-1.el7.noarch                                                                        30/65 
+  Verifying  : python-inotify-0.9.4-4.el7.noarch                                                                                     31/65 
+  Verifying  : python2-designateclient-2.3.0-1.el7.noarch                                                                            32/65 
+  Verifying  : python2-troveclient-2.5.0-1.el7.noarch                                                                                33/65 
+  Verifying  : python2-pika_pool-0.1.3-3.el7.noarch                                                                                  34/65 
+  Verifying  : python-oslo-concurrency-lang-3.14.0-1.el7.noarch                                                                      35/65 
+  Verifying  : python2-oslo-context-2.9.0-1.el7.noarch                                                                               36/65 
+  Verifying  : python2-oslo-messaging-5.10.1-1.el7.noarch                                                                            37/65 
+  Verifying  : 2:python2-oslo-config-3.17.1-1.el7.noarch                                                                             38/65 
+  Verifying  : python-osprofiler-1.4.0-1.el7.noarch                                                                                  39/65 
+  Verifying  : python2-oslo-middleware-3.19.0-1.el7.noarch                                                                           40/65 
+  Verifying  : python2-oslo-serialization-2.13.0-1.el7.noarch                                                                        41/65 
+  Verifying  : 1:openstack-trove-api-6.0.0-1.el7.noarch                                                                              42/65 
+  Verifying  : python2-keystoneauth1-2.12.2-1.el7.noarch                                                                             43/65 
+  Verifying  : 1:python-trove-6.0.0-1.el7.noarch                                                                                     44/65 
+  Verifying  : python2-pika-0.10.0-3.el7.noarch                                                                                      45/65 
+  Verifying  : python-oslo-middleware-lang-3.19.0-1.el7.noarch                                                                       46/65 
+  Verifying  : python-oslo-utils-lang-3.16.0-1.el7.noarch                                                                            47/65 
+  Verifying  : python2-oslo-concurrency-3.14.0-1.el7.noarch                                                                          48/65 
+  Verifying  : python2-oslo-log-3.16.0-1.el7.noarch                                                                                  49/65 
+  Verifying  : python-mistralclient-2.1.2-1.el7.noarch                                                                               50/65 
+  Verifying  : python2-swiftclient-3.1.0-1.el7.noarch                                                                                51/65 
+  Verifying  : python2-requestsexceptions-1.1.3-1.el7.noarch                                                                         52/65 
+  Verifying  : python2-oslo-db-4.13.5-1.el7.noarch                                                                                   53/65 
+  Verifying  : python2-xmltodict-0.10.1-1.el7.noarch                                                                                 54/65 
+  Verifying  : python2-oslo-i18n-3.9.0-1.el7.noarch                                                                                  55/65 
+  Verifying  : python2-heatclient-1.5.0-1.el7.noarch                                                                                 56/65 
+  Verifying  : 1:openstack-trove-6.0.0-1.el7.noarch                                                                                  57/65 
+  Verifying  : python2-osc-lib-1.1.0-3.el7.noarch                                                                                    58/65 
+  Verifying  : python2-cinderclient-1.9.0-1.el7.noarch                                                                               59/65 
+  Verifying  : python2-oslo-utils-3.16.0-1.el7.noarch                                                                                60/65 
+  Verifying  : 1:openstack-trove-taskmanager-6.0.0-1.el7.noarch                                                                      61/65 
+  Verifying  : python-oslo-db-lang-4.13.5-1.el7.noarch                                                                               62/65 
+  Verifying  : python2-os-client-config-1.21.1-1.el7.noarch                                                                          63/65 
+  Verifying  : 1:python2-keystoneclient-3.5.0-1.el7.noarch                                                                           64/65 
+  Verifying  : python2-debtcollector-1.8.0-1.el7.noarch                                                                              65/65 
+
+Removed:
+  openstack-trove.noarch 1:6.0.0-1.el7                                openstack-trove-api.noarch 1:6.0.0-1.el7                            
+  openstack-trove-common.noarch 1:6.0.0-1.el7                         openstack-trove-conductor.noarch 1:6.0.0-1.el7                      
+  openstack-trove-taskmanager.noarch 1:6.0.0-1.el7                    python-inotify.noarch 0:0.9.4-4.el7                                 
+  python-mistralclient.noarch 0:2.1.2-1.el7                           python-oslo-concurrency-lang.noarch 0:3.14.0-1.el7                  
+  python-oslo-db-lang.noarch 0:4.13.5-1.el7                           python-oslo-log-lang.noarch 0:3.16.0-1.el7                          
+  python-oslo-middleware-lang.noarch 0:3.19.0-1.el7                   python-oslo-utils-lang.noarch 0:3.16.0-1.el7                        
+  python-osprofiler.noarch 0:1.4.0-1.el7                              python-trove.noarch 1:6.0.0-1.el7                                   
+  python2-cinderclient.noarch 0:1.9.0-1.el7                           python2-debtcollector.noarch 0:1.8.0-1.el7                          
+  python2-designateclient.noarch 0:2.3.0-1.el7                        python2-heatclient.noarch 0:1.5.0-1.el7                             
+  python2-keystoneauth1.noarch 0:2.12.2-1.el7                         python2-keystoneclient.noarch 1:3.5.0-1.el7                         
+  python2-keystonemiddleware.noarch 0:4.9.0-1.el7                     python2-neutronclient.noarch 0:6.0.0-2.el7                          
+  python2-os-client-config.noarch 0:1.21.1-1.el7                      python2-osc-lib.noarch 0:1.1.0-3.el7                                
+  python2-oslo-concurrency.noarch 0:3.14.0-1.el7                      python2-oslo-config.noarch 2:3.17.1-1.el7                           
+  python2-oslo-context.noarch 0:2.9.0-1.el7                           python2-oslo-db.noarch 0:4.13.5-1.el7                               
+  python2-oslo-i18n.noarch 0:3.9.0-1.el7                              python2-oslo-log.noarch 0:3.16.0-1.el7                              
+  python2-oslo-messaging.noarch 0:5.10.1-1.el7                        python2-oslo-middleware.noarch 0:3.19.0-1.el7                       
+  python2-oslo-serialization.noarch 0:2.13.0-1.el7                    python2-oslo-service.noarch 0:1.16.0-1.el7                          
+  python2-oslo-utils.noarch 0:3.16.0-1.el7                            python2-pika.noarch 0:0.10.0-3.el7                                  
+  python2-pika_pool.noarch 0:0.1.3-3.el7                              python2-positional.noarch 0:1.1.1-2.el7                             
+  python2-requestsexceptions.noarch 0:1.1.3-1.el7                     python2-stevedore.noarch 0:1.17.1-1.el7                             
+  python2-swiftclient.noarch 0:3.1.0-1.el7                            python2-troveclient.noarch 0:2.5.0-1.el7                            
+  python2-xmltodict.noarch 0:0.10.1-1.el7                            
+
+Installed:
+  python-cinderclient.noarch 0:1.4.0-1.el7                             python-heatclient.noarch 0:0.8.0-1.el7                             
+  python-keystoneclient.noarch 1:1.7.2-1.el7                           python-keystonemiddleware.noarch 0:2.3.1-1.el7                     
+  python-neutronclient.noarch 0:3.1.0-1.el7                            python-oslo-concurrency.noarch 0:2.6.1-3.el7                       
+  python-oslo-db.noarch 0:2.6.0-3.el7                                  python-oslo-log.noarch 0:1.10.0-1.el7                              
+  python-oslo-messaging.noarch 0:2.5.0-1.el7                           python-oslo-middleware.noarch 0:2.8.0-1.el7                        
+  python-oslo-service.noarch 0:0.9.0-1.el7                             python-osprofiler.noarch 0:0.3.0-1.el7                             
+  python-stevedore.noarch 0:1.8.0-1.el7                                python-swiftclient.noarch 0:2.6.0-1.el7                            
+  python-troveclient.noarch 0:1.3.0-1.el7                              python2-debtcollector.noarch 0:0.8.0-1.el7                         
+  python2-os-client-config.noarch 0:1.7.4-1.el7                        python2-oslo-config.noarch 2:2.4.0-1.el7                           
+  python2-oslo-context.noarch 0:0.6.0-1.el7                            python2-oslo-i18n.noarch 0:2.6.0-1.el7                             
+  python2-oslo-serialization.noarch 0:1.9.0-1.el7                      python2-oslo-utils.noarch 0:2.5.0-1.el7                            
+
+Complete!

@@ -1,0 +1,36 @@
+
+rsync daemon
+-------------------------------------
+配置文件 /etc/rsyncd.conf
+port=888
+uid=root
+gid=root
+use chroot = no
+max connections = 0
+timeout = 300
+motd file = /var/rsyncd/rsync.motd
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsyncd.log
+dont compress   = *.gz *.tgz *.zip *.z *.Z *.rpm *.deb *.bz2
+
+
+[local]
+path=/root/test1
+read only = false
+ignore errors
+commont = anyone can access
+--------------------------------------
+
+启动进程：
+#rsyncd --daemon
+
+
+测试：
+[root@host3 ~]# ls test1/
+allen.txt
+[root@host3 ~]# rsync --list-only --port 888 127.0.0.1::local/
+
+drwxr-xr-x          23 2018/01/27 16:14:45 .
+-rw-r--r--           0 2018/01/27 16:14:45 allen.txt
+[root@host3 ~]#

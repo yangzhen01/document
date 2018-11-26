@@ -1,0 +1,4 @@
+
+在天津 control 节点上执行：
+export http_proxy=http://D10709:pA755659@10.191.131.12:3128
+unset http_proxy

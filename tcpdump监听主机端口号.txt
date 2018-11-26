@@ -1,0 +1,18 @@
+
+监听来自主机 10.191.130.130:123 端口的网络包或 本地端口 123 到达目的 10.191.130.130 的网络包。
+
+[root@control-1 ~]# tcpdump -i eno1.101 "host 10.191.130.130 && port 123 "
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eno1.101, link-type EN10MB (Ethernet), capture size 65535 bytes
+12:16:20.817470 IP control-1.cdc-1.lh.38403 > 10.191.130.130.ntp: NTPv4, Client, length 48
+12:16:20.818142 IP 10.191.130.130.ntp > control-1.cdc-1.lh.38403: NTPv3, Server, length 48
+12:33:26.531505 IP control-1.cdc-1.lh.54173 > 10.191.130.130.ntp: NTPv4, Client, length 48
+12:33:26.532124 IP 10.191.130.130.ntp > control-1.cdc-1.lh.54173: NTPv3, Server, length 48
+12:50:33.291850 IP control-1.cdc-1.lh.56381 > 10.191.130.130.ntp: NTPv4, Client, length 48
+12:50:33.292608 IP 10.191.130.130.ntp > control-1.cdc-1.lh.56381: NTPv3, Server, length 48
+13:07:46.756978 IP control-1.cdc-1.lh.43518 > 10.191.130.130.ntp: NTPv4, Client, length 48
+13:07:46.757587 IP 10.191.130.130.ntp > control-1.cdc-1.lh.43518: NTPv3, Server, length 48
+13:24:56.019706 IP control-1.cdc-1.lh.46243 > 10.191.130.130.ntp: NTPv4, Client, length 48
+13:24:56.020289 IP 10.191.130.130.ntp > control-1.cdc-1.lh.46243: NTPv3, Server, length 48
+13:42:00.772663 IP control-1.cdc-1.lh.37219 > 10.191.130.130.ntp: NTPv4, Client, length 48
+13:42:00.773366 IP 10.191.130.130.ntp > control-1.cdc-1.lh.37219: NTPv3, Server, length 48
